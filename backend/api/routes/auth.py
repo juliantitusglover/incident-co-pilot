@@ -1,3 +1,5 @@
 from fastapi import APIRouter
 
-router = APIRouter(prefix="/api/v1/auth", tags=["auth"])
+from backend.core.config import get_settings
+
+router = APIRouter(prefix=f"{get_settings().API_PREFIX}/auth", tags=["auth"])

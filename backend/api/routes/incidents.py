@@ -1,3 +1,5 @@
 from fastapi import APIRouter
 
-router = APIRouter(prefix="/api/v1/incidents", tags=["incidents"])
+from backend.core.config import Settings, get_settings
+
+router = APIRouter(prefix=f"{get_settings().API_PREFIX}/incidents", tags=["incidents"])
