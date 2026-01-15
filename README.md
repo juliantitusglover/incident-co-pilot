@@ -17,15 +17,11 @@ Incident Co-Pilot is a lightweight incident timeline capture and summarisation t
 - Node.js 20.19+ (or 22.12+) recommended for Vite 7+ tooling
 
 ## Backend: run locally (API)
-Note: During repo bootstrap, the backend code may not exist yet. Once the FastAPI skeleton is added, the goal is:
-- one command to start the API
-- env vars via `.env`
-
 Planned workflow:
 1) Create environment file:
    - Copy `backend/.env.example` → `backend/.env`
 2) Start the API:
-   - `uvicorn app.main:app --reload`
+   - `fastapi dev backend/main.py`
 
 Health endpoints will be unversioned `/health/*`, while business APIs will be versioned under `/api/v1/*`.
 
@@ -36,6 +32,44 @@ Local development uses `backend/.env` (not committed).
 ## Tests
 Planned command (once tests exist):
 - `pytest`
+
+## Error handling
+HTTPException will be used for client errors.
+Default validation error behaviour won't be changed for now.
+- `pytest`
+
+## Database & ORM conventions
+### ORM + migrations
+
+ORM: SQLAlchemy 2.x ORM
+
+Migrations: Alembic (schema changes are migration-driven, no manual DB edits)
+
+### Primary keys (IDs)
+
+Primary key type: BIGINT (auto-generated id) for all tables.
+
+Sequential numeric keys are preferred over random UUIDs for index/storage efficiency. UUID remains an option later if externally-safe public identifiers or distributed ID generation is needed.
+
+### Timestamps
+
+All timestamps are timestamptz (timezone-aware) in Postgres.
+
+created_at: set by the DB using a default, not by the application.
+
+updated_at: set by the application on every update.
+
+### Enum-ish fields (severity, status)
+
+Stored as constrained strings: TEXT + CHECK constraint restricting allowed values.
+
+Native Postgres ENUM types won't be used initially, to keep schema evolution simpler (CHECK constraints provide similar integrity with more flexibility).
+
+### Table Naming conventions
+
+snake_case everywhere.
+
+Plural table names (e.g. incidents, timeline_events).
 
 ## License
 MIT (see `LICENSE`).
