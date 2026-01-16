@@ -38,10 +38,89 @@ HTTPException will be used for client errors.
 Default validation error behaviour won't be changed for now.
 - `pytest`
 
+## Database & Migrations
+### 1. Initial Setup
+
+Ensure your local Postgres server is running and create the project database:
+
+```bash
+createdb incident_co_pilot
+```
+
+Ensure your .env file in the backend/ directory contains the correct connection string:
+
+```
+DATABASE_URL=postgresql://jtg@localhost:5432/incident_co_pilot
+```
+
+### 2. Run Migrations
+
+Alembic migrations must be executed from the backend/ directory to ensure Python package paths resolve correctly for the autogenerate feature.
+
+```bash
+# Navigate to the backend directory
+cd backend
+
+# Apply all migrations to the latest version (Initialize Schema)
+alembic upgrade head
+```
+
+### 3. Development Workflow
+
+- Create a new migration: After modifying models in backend/db/models/, generate a new version script:
+```bash
+alembic revision --autogenerate -m "describe your changes"
+```
+
+- Check migration status: Verify which migration version your local DB is currently on:
+```bash
+alembic current
+```
+
+### Reset Local Database
+
+If the database state becomes inconsistent or you wish to wipe all data for a fresh start:
+
+1. Drop the database:
+```bash
+dropdb incident_co_pilot
+```
+2. Re-create the database:
+
+```bash
+createdb incident_co_pilot
+```
+3. Re-run migrations:
+
+```bash
+cd backend
+alembic upgrade head
+```
+[!IMPORTANT]:Dropping the database is the recommended reset method because it also removes custom PostgreSQL types (like the severity and status Enums) and the alembic_version tracking table.
+
+### Readiness Check
+
+The application includes a built-in health check to verify database connectivity and schema integrity. You can verify this via the API:
+
+- Endpoint: GET /ready
+
+- Expected Response:
+```JSON
+{
+  "status": "healthy",
+  "connectivity": true,
+  "tables_found": [
+    "alembic_version",
+    "incidents",
+    "timeline_events"
+  ]
+}
+```
+
 ## Database & ORM conventions
 ### ORM + migrations
 
-ORM: SQLAlchemy 2.x ORM
+ORM: SQLAlchemy 2.0 ORM
 
 Migrations: Alembic (schema changes are migration-driven, no manual DB edits)
 
@@ -70,6 +149,34 @@ Native Postgres ENUM types won't be used initially, to keep schema evolution sim
 snake_case everywhere.
 
 Plural table names (e.g. incidents, timeline_events).
+
+## Indexing Decisions
+
+I have implemented three composite/ordered indexes. These were chosen because Postgres does not automatically index foreign keys, and default B-tree indexes do not always optimize for the specific "sort-by-newest" behavior common in dashboards.
+
+1. Incident Timeline Lookup
+
+    Columns: (incident_id, occurred_at)
+
+    Index Name: ix_timeline_incident_occurred
+
+    Justification: This is the most critical index for the "Incident Detail" view. When a user clicks an incident, we need to fetch all events for that specific ID. Adding occurred_at to the index allows Postgres to retrieve the events already sorted by time (Timeline) without a secondary sort operation.
+
+2. Incident Dashboard (Newest First)
+
+    Columns: (created_at DESC)
+
+    Index Name: ix_incidents_created_at
+
+    Justification: The main landing page will almost always show the most recent incidents first. By indexing created_at in descending order, the database can perform a "backward scan" extremely efficiently, ensuring the dashboard loads instantly even as the incidents table grows to thousands of rows.
+
+3. Filtered Incident List
+
+    Columns: (status, created_at)
+
+    Index Name: ix_incidents_status_created_at
+
+    Justification: Users frequently filter by "Open" or "Investigating" incidents. This composite index follows the Equality-Sort-Range (ESR) rule: it first narrows down the rows by the exact status and then provides them in the pre-sorted order of created_at.
 
 ## License
 MIT (see `LICENSE`).
