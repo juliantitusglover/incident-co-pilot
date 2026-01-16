@@ -16,6 +16,3 @@ SessionLocal = sessionmaker(autoflush=True, bind=engine)
 def get_db() -> Generator[Session, None, None]:
     with SessionLocal() as session:
         yield session
-
-def create_tables():
-    Base.metadata.create_all(bind=engine)
