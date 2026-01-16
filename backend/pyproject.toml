@@ -1,10 +1,11 @@
 [project]
-name = "Incident Co-Pilot API"
+name = "Incident-Co-Pilot-API"
 version = "0.1.0"
 description = "Incident Co-Pilot is a lightweight incident timeline capture and summarisation tool."
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
+    "alembic>=1.18.1",
     "fastapi[all]>=0.128.0",
     "langchain>=1.2.3",
     "langchain-openai>=1.1.7",
