@@ -12,13 +12,13 @@ class Settings(BaseSettings, case_sensitive=True):
     API_VERSION: str = "0.1.0"
     API_PREFIX: str = "/api/v1"
 
-    DATABASE_URL: str
+    DATABASE_URL: str = "postgresql://postgres:postgres@localhost:5432/incident_db"
 
     CORS_ORIGINS: str = ""
 
     DEBUG: bool = False
 
-    OPENAI_API_KEY: str
+    OPENAI_API_KEY: str = "Dummy-key"
 
     @field_validator("CORS_ORIGINS")
     def parse_cors_origins(cls, v: str) -> List[str]:
