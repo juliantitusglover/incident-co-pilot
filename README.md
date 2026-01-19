@@ -30,8 +30,21 @@ Environment variables are defined in `backend/.env.example`.
 Local development uses `backend/.env` (not committed).
 
 ## Tests
-Planned command (once tests exist):
-- `pytest`
+
+The project uses `pytest` with a transactional isolation strategy. 
+
+### 1. Requirements
+Ensure you have created the local postgres test database:
+
+```bash
+createdb incident_co_pilot_test
+```
+
+### 2. Run Tests
+
+```bash
+pytest
+```
 
 ## Error handling
 HTTPException will be used for client errors.
