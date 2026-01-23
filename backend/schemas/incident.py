@@ -22,13 +22,11 @@ class IncidentBase(BaseModel):
         examples=["All API requests are failing with 504 Gateway Timeout. Affecting approximately 15% of users."]
     )
     status: Status = Field(
-        ...,
         default=Status.OPEN,
         description="The current lifecycle state of the incident.",
         examples=[Status.OPEN]
     )
     severity: Severity = Field(
-        ...,
         default=Severity.SEV1,
         description="The impact classification based on business criticality.",
         examples=[Severity.SEV1]
