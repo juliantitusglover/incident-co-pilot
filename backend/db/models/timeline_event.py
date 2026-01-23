@@ -16,8 +16,8 @@ class TimelineEvent(Base):
         ForeignKey("incidents.id", ondelete="CASCADE"), nullable=False
     )
     occurred_at: Mapped[datetime] = mapped_column(TIMESTAMP(timezone=True), nullable=False)
-    event_type: Mapped[str] = mapped_column(String, nullable=False)
-    message: Mapped[str] = mapped_column(String, nullable=False)
+    event_type: Mapped[str] = mapped_column(String(50), nullable=False)
+    message: Mapped[str] = mapped_column(String(5000), nullable=False)
 
     incident: Mapped["Incident"] = relationship(back_populates="events")
 

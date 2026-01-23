@@ -25,7 +25,8 @@ class Incident(Base):
     __tablename__ = "incidents"
 
     id: Mapped[int] = mapped_column(BigInteger, primary_key=True, autoincrement=True)
-    title: Mapped[str] = mapped_column(String, nullable=False)
+    title: Mapped[str] = mapped_column(String(255), nullable=False)
+    description: Mapped[str] = mapped_column(String(2000), nullable=True)
     severity: Mapped[Severity] = mapped_column(SQLEnum(Severity), nullable=False)
     status: Mapped[Status] = mapped_column(SQLEnum(Status), nullable=False, default=Status.OPEN)
     
