@@ -191,5 +191,55 @@ I have implemented three composite/ordered indexes. These were chosen because Po
 
     Justification: Users frequently filter by "Open" or "Investigating" incidents. This composite index follows the Equality-Sort-Range (ESR) rule: it first narrows down the rows by the exact status and then provides them in the pre-sorted order of created_at.
 
+## API Contract & Design Rules
+
+This project follows a "Schema-First" approach using Pydantic for validation and OpenAPI (Swagger) for documentation.
+
+1. Data Types & Formats
+
+    Timestamps: All timestamps are handled as ISO-8601 UTC strings.
+
+        Example: 2026-01-23T15:30:00Z
+
+    Enumerations:
+
+        Status: Strict string-based enum (IDENTIFIED, INVESTIGATING, DEGRADED, RESOLVED).
+
+        Severity: Strict string-based enum (SEV1, SEV2, SEV3, SEV4).
+
+    Strings: All input strings are automatically stripped of leading/trailing whitespace.
+
+2. Validation Constraints
+
+    Incidents:
+
+        title: Required, 1-255 characters.
+
+        description: Required, 1-2000 characters.
+
+    Timeline Events:
+
+        event_type: Required, 1-50 characters.
+
+        message: Required, 3-5000 characters.
+
+        occurred_at: Required (The API does not default to "now"; the client must provide the event time).
+
+3. Response Shapes
+
+    List Views (IncidentListItem): Returns a summary of the incident. Does not include the nested timeline events to optimize performance and bandwidth.
+
+    Detail Views (IncidentRead): Returns the complete incident record, including a nested list of all associated TimelineEvents.
+
+4. Standard Error Responses
+
+The API uses standard FastAPI/OpenAPI error shapes:
+
+    422 Unprocessable Entity: Validation failed (e.g., string too long, missing required field).
+
+    404 Not Found: The requested resource does not exist.
+
+    503 Service Unavailable: Database or critical dependency health check failed.
+
 ## License
 MIT (see `LICENSE`).
