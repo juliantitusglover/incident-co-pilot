@@ -7,7 +7,7 @@ from backend.db.models.timeline_event import TimelineEvent
 from backend.schemas.incident import IncidentCreate, IncidentRead, IncidentListItem, IncidentUpdate
 from backend.db.models.incident import Incident, Severity, Status
 from backend.db.sessions import get_db
-from backend.schemas.timeline_event import TimelineEventCreate, TimelineEventRead
+from backend.schemas.timeline_event import TimelineEventCreate, TimelineEventRead, TimelineEventUpdate
 
 router = APIRouter(prefix="/incidents", tags=["incidents"])
 
@@ -128,6 +128,25 @@ def update_incident(
     session.commit()
     session.refresh(db_incident)
     return db_incident
+
+@router.patch("/{incident_id}/events/{event_id}", response_model=TimelineEventRead)
+def update_timeline_event(
+    incident_id: int,
+    event_id: int,
+    event_update: TimelineEventUpdate,
+    session: Session = Depends(get_db),
+):
+    db_event = get_timeline_event(incident_id, event_id, session)
+
+    update_data = event_update.model_dump(exclude_unset=True)
+
+    for key, value in update_data.items():
+        setattr(db_event, key, value)
+
+    session.add(db_event)
+    session.commit()
+    session.refresh(db_event)
+    return db_event
 
 @router.delete("/{incident_id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_incident(
