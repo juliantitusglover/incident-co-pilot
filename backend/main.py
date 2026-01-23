@@ -1,8 +1,7 @@
-from typing import Annotated
-from fastapi import Depends, FastAPI
+from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from backend.core.config import Settings, get_settings
+from backend.core.config import get_settings
 from backend.api.routes import auth, health, incidents
 
 def create_app() -> FastAPI:
@@ -24,7 +23,7 @@ def create_app() -> FastAPI:
 
     app.include_router(auth.router)
     app.include_router(health.router)
-    app.include_router(incidents.router)
+    app.include_router(incidents.router, prefix=settings.API_PREFIX)
     
     return app
 
