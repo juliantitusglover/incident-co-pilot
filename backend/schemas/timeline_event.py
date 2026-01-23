@@ -40,10 +40,12 @@ class TimelineEventRead(TimelineEventBase):
 
 class TimelineEventUpdate(BaseModel):
     occurred_at: Optional[datetime] = Field(
+        None,
         description="The ISO-8601 timestamp when the event actually took place.",
         examples=["2026-01-23T12:00:00Z"]
     )
     event_type: Optional[str] = Field(
+        None,
         min_length=1,
         max_length=50,
         strip_whitespace=True,
@@ -51,6 +53,7 @@ class TimelineEventUpdate(BaseModel):
         examples=["note"]
     )
     message: Optional[str] = Field(
+        None,
         min_length=3,
         max_length=5000,
         strip_whitespace=True,
