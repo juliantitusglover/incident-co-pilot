@@ -1,4 +1,5 @@
 from datetime import datetime
+from typing import Optional
 from pydantic import BaseModel, ConfigDict, Field
 
 class TimelineEventBase(BaseModel):
@@ -36,3 +37,23 @@ class TimelineEventRead(TimelineEventBase):
     updated_at: datetime = Field(..., description="System timestamp when this record was last updated.")
 
     model_config = ConfigDict(from_attributes=True)
+
+class TimelineEventUpdate(BaseModel):
+    occurred_at: Optional[datetime] = Field(
+        description="The ISO-8601 timestamp when the event actually took place.",
+        examples=["2026-01-23T12:00:00Z"]
+    )
+    event_type: Optional[str] = Field(
+        min_length=1,
+        max_length=50,
+        strip_whitespace=True,
+        description="The category of the event (e.g., 'note', 'status_change', 'system_log').",
+        examples=["note"]
+    )
+    message: Optional[str] = Field(
+        min_length=3,
+        max_length=5000,
+        strip_whitespace=True,
+        description="A detailed description of the event or update.",
+        examples=["Investigation started: identified a memory leak in the auth service."]
+    )
