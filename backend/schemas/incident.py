@@ -1,4 +1,5 @@
 from datetime import datetime
+from typing import Optional
 from pydantic import BaseModel, ConfigDict, Field
 from backend.db.models.incident import Severity, Status
 from backend.schemas.timeline_event import TimelineEventRead
@@ -52,3 +53,29 @@ class IncidentRead(IncidentBase):
     )
 
     model_config = ConfigDict(from_attributes=True)
+
+class IncidentUpdate(BaseModel):
+    title: Optional[str] = Field(
+        min_length=1, 
+        max_length=255, 
+        strip_whitespace=True,
+        description="A concise, high-level summary of the incident.",
+        examples=["Database connection timeouts in US-EAST-1"]
+    )
+    description: Optional[str] = Field(
+        min_length=1, 
+        max_length=2000,
+        strip_whitespace=True,
+        description="Detailed context regarding the incident, including symptoms and initial impact.",
+        examples=["All API requests are failing with 504 Gateway Timeout. Affecting approximately 15% of users."]
+    )
+    status: Optional[Status] = Field(
+        None,
+        description="The current lifecycle state of the incident.",
+        examples=[Status.OPEN]
+    )
+    severity: Optional[Severity] = Field(
+        None,
+        description="The impact classification based on business criticality.",
+        examples=[Severity.SEV1]
+    )
