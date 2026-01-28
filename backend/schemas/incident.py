@@ -33,6 +33,8 @@ class IncidentBase(BaseModel):
         examples=[Severity.SEV1]
     )
 
+    model_config = ConfigDict(from_attributes=True)
+
 class IncidentCreate(IncidentBase):
     """Schema for creating a new incident."""
     pass
