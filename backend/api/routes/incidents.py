@@ -1,175 +1,127 @@
 from typing import List
-from fastapi import APIRouter, HTTPException, status, Depends
-from sqlalchemy import select
-from sqlalchemy.orm import Session, selectinload
 
-from backend.db.models.timeline_event import TimelineEvent
+from fastapi import APIRouter, Depends, HTTPException, status
+
+from backend.api.dependencies import get_uow
+from backend.adapters.persistence.sqlalchemy.uow import SqlAlchemyUnitOfWork
+from backend.domain.incidents.enums import Severity, Status
 from backend.schemas.incident import IncidentCreate, IncidentRead, IncidentListItem, IncidentUpdate
-from backend.db.models.incident import Incident
-from backend.domain.incidents.enums import Status, Severity
-from backend.db.sessions import get_db
 from backend.schemas.timeline_event import TimelineEventCreate, TimelineEventRead, TimelineEventUpdate
 
 router = APIRouter(prefix="/incidents", tags=["incidents"])
+
+
+def _incident_or_404(uow: SqlAlchemyUnitOfWork, incident_id: int, *, with_events: bool = False):
+    incident = (
+        uow.incidents.get_with_events(incident_id)
+        if with_events
+        else uow.incidents.get(incident_id)
+    )
+    if not incident:
+        raise HTTPException(status_code=404, detail="Incident not found")
+    return incident
+
+
+def _event_or_404(uow: SqlAlchemyUnitOfWork, incident_id: int, event_id: int):
+    _incident_or_404(uow, incident_id, with_events=False)
+
+    event = uow.events.get(incident_id, event_id)
+    if not event:
+        raise HTTPException(status_code=404, detail="Event not found")
+    return event
+
 
 @router.get("", response_model=List[IncidentListItem])
 def get_all_incidents(
     status: Status | None = None,
     severity: Severity | None = None,
-    session: Session = Depends(get_db),
+    uow: SqlAlchemyUnitOfWork = Depends(get_uow),
 ):
-    query = select(Incident)
-
-    if status:
-        query = query.where(Incident.status == status)
-    
-    if severity:
-        query = query.where(Incident.severity == severity)
-
-    query = query.order_by(Incident.created_at.desc())
-
-    incidents = session.execute(query).scalars().all()
-
-    return incidents
+    incidents = uow.incidents.list(status=status, severity=severity)
+    return [IncidentListItem.model_validate(i, from_attributes=True) for i in incidents]
 
 
 @router.get("/{incident_id}", response_model=IncidentRead)
 def get_incident(
     incident_id: int,
-    session: Session = Depends(get_db),
+    uow: SqlAlchemyUnitOfWork = Depends(get_uow),
 ):
-    query = select(Incident).where(Incident.id == incident_id).options(selectinload(Incident.events))
+    incident = _incident_or_404(uow, incident_id, with_events=True)
+    return IncidentRead.model_validate(incident, from_attributes=True)
 
-    incident = session.execute(query).scalar_one_or_none()
-    if not incident:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Incident not found"
-        )
-
-    return incident
-
-def get_incident_or_404(
-    incident_id: int,
-    session: Session = Depends(get_db),
-):
-    query = select(Incident).where(Incident.id == incident_id)
-
-    incident = session.execute(query).scalar_one_or_none()
-    if not incident:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Incident not found"
-        )
-
-    return incident
-
-def get_timeline_event(
-    incident_id: int,
-    event_id: int,
-    session: Session = Depends(get_db),
-):
-    get_incident_or_404(incident_id, session)
-    
-    query = select(TimelineEvent).where(
-        TimelineEvent.id == event_id,
-        TimelineEvent.incident_id == incident_id
-    )
-
-    event = session.execute(query).scalar_one_or_none()
-    if not event:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Event not found"
-        )
-    
-    return event
 
 @router.post("", response_model=IncidentRead, status_code=status.HTTP_201_CREATED)
 def create_incident(
     incident: IncidentCreate,
-    session: Session = Depends(get_db),
+    uow: SqlAlchemyUnitOfWork = Depends(get_uow),
 ):
-    new_incident = Incident(**incident.model_dump())
-    session.add(new_incident)
-    session.commit()
-    session.refresh(new_incident)
-    return new_incident
+    created = uow.incidents.create(incident.model_dump())
+    return IncidentRead.model_validate(created, from_attributes=True)
 
-@router.post("/{incident_id}/events", response_model=TimelineEventRead, status_code=status.HTTP_201_CREATED)
-def create_timeline_event(
-    incident_id: int,
-    event: TimelineEventCreate,
-    session: Session = Depends(get_db),
-):
-    db_incident = get_incident_or_404(incident_id, session)
-
-    new_event = TimelineEvent(
-        **event.model_dump(), 
-        incident_id=db_incident.id
-    )
-
-    session.add(new_event)
-    session.commit()
-    session.refresh(new_event)
-    
-    return new_event
 
 @router.patch("/{incident_id}", response_model=IncidentRead)
 def update_incident(
     incident_id: int,
     incident_update: IncidentUpdate,
-    session: Session = Depends(get_db),
+    uow: SqlAlchemyUnitOfWork = Depends(get_uow),
 ):
-    db_incident = get_incident_or_404(incident_id, session)
+    _incident_or_404(uow, incident_id)
 
     update_data = incident_update.model_dump(exclude_unset=True)
+    updated = uow.incidents.update(incident_id, update_data)
+    if not updated:
+        raise HTTPException(status_code=404, detail="Incident not found")
 
-    for key, value in update_data.items():
-        setattr(db_incident, key, value)
+    return IncidentRead.model_validate(updated, from_attributes=True)
 
-    session.add(db_incident)
-    session.commit()
-    session.refresh(db_incident)
-    return db_incident
+
+@router.delete("/{incident_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_incident(
+    incident_id: int,
+    uow: SqlAlchemyUnitOfWork = Depends(get_uow),
+):
+    deleted = uow.incidents.delete(incident_id)
+    if not deleted:
+        raise HTTPException(status_code=404, detail="Incident not found")
+    return None
+
+
+@router.post("/{incident_id}/events", response_model=TimelineEventRead, status_code=status.HTTP_201_CREATED)
+def create_timeline_event(
+    incident_id: int,
+    event: TimelineEventCreate,
+    uow: SqlAlchemyUnitOfWork = Depends(get_uow),
+):
+    _incident_or_404(uow, incident_id)
+
+    created = uow.events.create(incident_id, event.model_dump())
+    return TimelineEventRead.model_validate(created, from_attributes=True)
+
 
 @router.patch("/{incident_id}/events/{event_id}", response_model=TimelineEventRead)
 def update_timeline_event(
     incident_id: int,
     event_id: int,
     event_update: TimelineEventUpdate,
-    session: Session = Depends(get_db),
+    uow: SqlAlchemyUnitOfWork = Depends(get_uow),
 ):
-    db_event = get_timeline_event(incident_id, event_id, session)
+    _event_or_404(uow, incident_id, event_id)
 
     update_data = event_update.model_dump(exclude_unset=True)
+    updated = uow.events.update(incident_id, event_id, update_data)
+    if not updated:
+        raise HTTPException(status_code=404, detail="Event not found")
 
-    for key, value in update_data.items():
-        setattr(db_event, key, value)
+    return TimelineEventRead.model_validate(updated, from_attributes=True)
 
-    session.add(db_event)
-    session.commit()
-    session.refresh(db_event)
-    return db_event
-
-@router.delete("/{incident_id}", status_code=status.HTTP_204_NO_CONTENT)
-def delete_incident(
-    incident_id: int,
-    session: Session = Depends(get_db),
-):
-    db_incident = get_incident_or_404(incident_id, session)
-    
-    session.delete(db_incident)
-    session.commit()
-    
-    return None
 
 @router.delete("/{incident_id}/events/{event_id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_timeline_event(
     incident_id: int,
     event_id: int,
-    session: Session = Depends(get_db),
+    uow: SqlAlchemyUnitOfWork = Depends(get_uow),
 ):
-    db_event = get_timeline_event(incident_id, event_id, session)
-
-    session.delete(db_event)
-    session.commit()
-    
+    deleted = uow.events.delete(incident_id, event_id)
+    if not deleted:
+        raise HTTPException(status_code=404, detail="Event not found")
     return None
