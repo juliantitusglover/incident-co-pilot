@@ -15,7 +15,6 @@ sys.path.insert(0, project_root)
 
 from backend.core.config import get_settings
 from backend.db.base import Base
-# IMPORTANT: Import models so autogenerate can see them
 from backend.db.models.incident import Incident
 from backend.db.models.timeline_event import TimelineEvent
 
