@@ -54,10 +54,15 @@ def client_fixture(app_fixture):
 def db_session():
     connection = engine.connect()
     trans = connection.begin()
-    with Session(bind=connection) as session:
+    session = Session(bind=connection, join_transaction_mode="create_savepoint")
+
+    try:
         yield session
-    trans.rollback()
-    connection.close()
+    finally:
+        session.close()
+        if trans.is_active:
+            trans.rollback()
+        connection.close()
 
 @pytest.fixture(autouse=True)
 def db_setup(app_fixture, db_session):
