@@ -12,7 +12,7 @@ class TimelineEventBase(BaseModel):
         ...,
         min_length=1,
         max_length=50,
-        strip_whitespace=True,
+        json_schema_extra={"str_strip_whitespace": True},
         description="The category of the event (e.g., 'note', 'status_change', 'system_log').",
         examples=["note"]
     )
@@ -20,7 +20,7 @@ class TimelineEventBase(BaseModel):
         ...,
         min_length=3,
         max_length=5000,
-        strip_whitespace=True,
+        json_schema_extra={"str_strip_whitespace": True},
         description="A detailed description of the event or update.",
         examples=["Investigation started: identified a memory leak in the auth service."]
     )
@@ -48,7 +48,7 @@ class TimelineEventUpdate(BaseModel):
         None,
         min_length=1,
         max_length=50,
-        strip_whitespace=True,
+        json_schema_extra={"str_strip_whitespace": True},
         description="The category of the event (e.g., 'note', 'status_change', 'system_log').",
         examples=["note"]
     )
@@ -56,7 +56,7 @@ class TimelineEventUpdate(BaseModel):
         None,
         min_length=3,
         max_length=5000,
-        strip_whitespace=True,
+        json_schema_extra={"str_strip_whitespace": True},
         description="A detailed description of the event or update.",
         examples=["Investigation started: identified a memory leak in the auth service."]
     )

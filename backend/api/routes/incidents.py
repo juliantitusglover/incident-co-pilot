@@ -5,7 +5,8 @@ from sqlalchemy.orm import Session, selectinload
 
 from backend.db.models.timeline_event import TimelineEvent
 from backend.schemas.incident import IncidentCreate, IncidentRead, IncidentListItem, IncidentUpdate
-from backend.db.models.incident import Incident, Severity, Status
+from backend.db.models.incident import Incident
+from backend.domain.incidents.enums import Status, Severity
 from backend.db.sessions import get_db
 from backend.schemas.timeline_event import TimelineEventCreate, TimelineEventRead, TimelineEventUpdate
 

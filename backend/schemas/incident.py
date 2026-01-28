@@ -1,7 +1,8 @@
 from datetime import datetime
 from typing import Optional
 from pydantic import BaseModel, ConfigDict, Field
-from backend.db.models.incident import Severity, Status
+from backend.domain.incidents.enums import Status, Severity
+
 from backend.schemas.timeline_event import TimelineEventRead
 
 class IncidentBase(BaseModel):
@@ -9,7 +10,7 @@ class IncidentBase(BaseModel):
         ...,
         min_length=1, 
         max_length=255, 
-        strip_whitespace=True,
+        json_schema_extra={"str_strip_whitespace": True},
         description="A concise, high-level summary of the incident.",
         examples=["Database connection timeouts in US-EAST-1"]
     )
@@ -17,7 +18,7 @@ class IncidentBase(BaseModel):
         ...,
         min_length=1, 
         max_length=2000,
-        strip_whitespace=True,
+        json_schema_extra={"str_strip_whitespace": True},
         description="Detailed context regarding the incident, including symptoms and initial impact.",
         examples=["All API requests are failing with 504 Gateway Timeout. Affecting approximately 15% of users."]
     )
@@ -54,16 +55,18 @@ class IncidentRead(IncidentBase):
 
 class IncidentUpdate(BaseModel):
     title: Optional[str] = Field(
+        None,
         min_length=1, 
         max_length=255, 
-        strip_whitespace=True,
+        json_schema_extra={"str_strip_whitespace": True},
         description="A concise, high-level summary of the incident.",
         examples=["Database connection timeouts in US-EAST-1"]
     )
     description: Optional[str] = Field(
+        None,
         min_length=1, 
         max_length=2000,
-        strip_whitespace=True,
+        json_schema_extra={"str_strip_whitespace": True},
         description="Detailed context regarding the incident, including symptoms and initial impact.",
         examples=["All API requests are failing with 504 Gateway Timeout. Affecting approximately 15% of users."]
     )
