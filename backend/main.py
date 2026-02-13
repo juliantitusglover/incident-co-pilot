@@ -1,17 +1,20 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from backend.core.config import get_settings
+from backend.api.exception_handlers import register_exception_handlers
+from backend.core.config import get_settings, Settings
 from backend.api.routes import auth, health, incidents
 
-def create_app() -> FastAPI:
-    settings = get_settings() 
+def create_app(settings: Settings | None = None) -> FastAPI:
+    settings = settings or get_settings()
 
     app = FastAPI(
         title=settings.API_TITLE,
         description=settings.API_DESCRIPTION,
         version=settings.API_VERSION,
     )
+
+    register_exception_handlers(app)
 
     app.add_middleware(
         CORSMiddleware,
