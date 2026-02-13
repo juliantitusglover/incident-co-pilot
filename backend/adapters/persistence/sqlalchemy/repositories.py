@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from sqlalchemy import select
+from sqlalchemy import exists, select
 from sqlalchemy.orm import Session, selectinload
 
 from backend.db.models.incident import Incident as IncidentModel
@@ -70,6 +70,10 @@ class SqlAlchemyIncidentRepository:
         self.session.delete(model)
         self.session.flush()
         return True
+    
+    def exists(self, incident_id: int) -> bool:
+        stmt = select(exists().where(IncidentModel.id == incident_id))
+        return bool(self.session.scalar(stmt))
 
 
 class SqlAlchemyTimelineEventRepository:
