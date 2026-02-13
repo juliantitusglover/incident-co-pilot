@@ -3,6 +3,11 @@ from typing import Optional
 from pydantic import BaseModel, ConfigDict, Field
 
 class TimelineEventBase(BaseModel):
+    model_config = ConfigDict(
+        from_attributes=True,
+        str_strip_whitespace=True,
+    )
+
     occurred_at: datetime = Field(
         ...,
         description="The ISO-8601 timestamp when the event actually took place.",
@@ -12,7 +17,6 @@ class TimelineEventBase(BaseModel):
         ...,
         min_length=1,
         max_length=50,
-        json_schema_extra={"str_strip_whitespace": True},
         description="The category of the event (e.g., 'note', 'status_change', 'system_log').",
         examples=["note"]
     )
@@ -20,14 +24,16 @@ class TimelineEventBase(BaseModel):
         ...,
         min_length=3,
         max_length=5000,
-        json_schema_extra={"str_strip_whitespace": True},
         description="A detailed description of the event or update.",
         examples=["Investigation started: identified a memory leak in the auth service."]
     )
 
 class TimelineEventCreate(TimelineEventBase):
     """Schema for adding a new event to an incident's timeline."""
-    pass
+    model_config = ConfigDict(
+        str_strip_whitespace=True,
+        extra="forbid",
+    )
 
 class TimelineEventRead(TimelineEventBase):
     """Full detail of a timeline event as stored in the database."""
@@ -36,9 +42,12 @@ class TimelineEventRead(TimelineEventBase):
     created_at: datetime = Field(..., description="System timestamp when this record was created.")
     updated_at: datetime = Field(..., description="System timestamp when this record was last updated.")
 
-    model_config = ConfigDict(from_attributes=True)
-
 class TimelineEventUpdate(BaseModel):
+    model_config = ConfigDict(
+        str_strip_whitespace=True,
+        extra="forbid",
+    )
+
     occurred_at: Optional[datetime] = Field(
         None,
         description="The ISO-8601 timestamp when the event actually took place.",
@@ -48,7 +57,6 @@ class TimelineEventUpdate(BaseModel):
         None,
         min_length=1,
         max_length=50,
-        json_schema_extra={"str_strip_whitespace": True},
         description="The category of the event (e.g., 'note', 'status_change', 'system_log').",
         examples=["note"]
     )
@@ -56,7 +64,6 @@ class TimelineEventUpdate(BaseModel):
         None,
         min_length=3,
         max_length=5000,
-        json_schema_extra={"str_strip_whitespace": True},
         description="A detailed description of the event or update.",
         examples=["Investigation started: identified a memory leak in the auth service."]
     )
