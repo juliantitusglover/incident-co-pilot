@@ -1,18 +1,27 @@
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker, Session
+from functools import lru_cache
 from typing import Generator
 
+from sqlalchemy import Engine, create_engine
+from sqlalchemy.orm import Session, sessionmaker
+
 from backend.core.config import get_settings
-from backend.db.base import Base
 
-engine = create_engine(
-    get_settings().DATABASE_URL,
-    echo=True,
-    pool_pre_ping=True
-)
+@lru_cache(maxsize=1)
+def get_engine() -> Engine:
+    settings = get_settings()
+    return create_engine(
+        settings.DATABASE_URL,
+        echo=settings.DEBUG,
+        pool_pre_ping=True,
+    )
 
-SessionLocal = sessionmaker(autoflush=True, bind=engine)
+def get_session_factory() -> sessionmaker[Session]:
+    return sessionmaker(
+        autoflush=True, 
+        bind=get_engine(),
+    )
 
 def get_db() -> Generator[Session, None, None]:
-    with SessionLocal() as session:
+    session_factory = get_session_factory()
+    with session_factory() as session:
         yield session

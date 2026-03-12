@@ -3,7 +3,7 @@ from typing import Annotated
 from fastapi import Depends
 from sqlalchemy import inspect, text
 from backend.core.config import Settings, get_settings
-from backend.db.sessions import engine
+from backend.db.sessions import get_engine
 
 logger = logging.getLogger(__name__)
 
@@ -14,6 +14,7 @@ def is_database_ready(settings: Annotated[Settings, Depends(get_settings)]
     Useful for health-check endpoints or startup scripts.
     """
     results = {"status": "unhealthy", "connectivity": False, "tables_found": []}
+    engine = get_engine()
     
     try:
         with engine.connect() as conn:

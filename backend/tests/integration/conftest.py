@@ -47,7 +47,7 @@ def db_session(engine, apply_migrations):
         connection.close()
 
 @pytest.fixture(autouse=True)
-def db_setup(app_fixture, db_session):
+def db_setup(app_fixture, db_session, dependency_override_guard):
     app_fixture.dependency_overrides[get_db] = lambda: db_session
     yield
     app_fixture.dependency_overrides.pop(get_db, None)
