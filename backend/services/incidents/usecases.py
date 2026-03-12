@@ -69,7 +69,7 @@ class IncidentUseCases:
         if cmd.status is not None:
             allowed = _ALLOWED_STATUS_TRANSITIONS.get(existing.status, {existing.status})
             if cmd.status not in allowed:
-                raise ValidationError(f"invalid status transition: {existing.status} -> {cmd.status}")
+                raise ValidationError(f"invalid status transition: {existing.status.value} -> {cmd.status.value}")
 
         changes = {}
         if cmd.title is not None:

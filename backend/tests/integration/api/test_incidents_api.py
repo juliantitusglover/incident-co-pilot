@@ -71,4 +71,4 @@ def test_update_incident_with_invalid_status_transition(client_fixture):
     patch_res = client_fixture.patch(f"/api/v1/incidents/{incident_id}", json={"status": "open"})
     print(patch_res.json())
     assert patch_res.status_code == 400
-    assert patch_res.json()["detail"] == f"invalid status transition: {Status.INVESTIGATING} -> {Status.OPEN}"
+    assert patch_res.json()["detail"] == f"invalid status transition: {incident_status} -> open"
