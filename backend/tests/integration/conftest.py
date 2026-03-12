@@ -1,6 +1,6 @@
 import os
 import pytest
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, text
 from sqlalchemy.orm import Session
 from alembic.config import Config
 from alembic import command
@@ -51,3 +51,8 @@ def db_setup(app_fixture, db_session, dependency_override_guard):
     app_fixture.dependency_overrides[get_db] = lambda: db_session
     yield
     app_fixture.dependency_overrides.pop(get_db, None)
+
+@pytest.fixture(autouse=True)
+def assert_clean_incidents_table(db_session):
+    count = db_session.execute(text("SELECT COUNT(*) FROM incidents")).scalar_one()
+    assert count == 0, f"incidents table not clean at test start, found {count} row(s)"
