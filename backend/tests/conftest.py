@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import os
+
 import pytest
 from fastapi.testclient import TestClient
 
@@ -9,8 +11,13 @@ from backend.main import create_app
 
 @pytest.fixture(scope="session")
 def settings_fixture() -> Settings:
+    database_url = os.getenv(
+        "DATABASE_URL",
+        "postgresql+psycopg2://jtg@localhost:5432/incident_co_pilot_test",
+    )
+
     return Settings(
-        DATABASE_URL="postgresql+psycopg2://jtg@localhost:5432/incident_co_pilot_test",
+        DATABASE_URL=database_url,
         OPENAI_API_KEY="test-key-not-real",
         _env_file=None,
     )
