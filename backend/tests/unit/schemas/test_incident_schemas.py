@@ -3,7 +3,7 @@ from datetime import datetime, timezone
 import pytest
 from pydantic import ValidationError
 
-from backend.domain.incidents.entities import Incident
+from backend.domain.incidents.entities import Incident, TimelineEvent
 from backend.domain.incidents.enums import Severity, Status
 from backend.schemas.incident import IncidentCreate, IncidentRead, IncidentUpdate
 
@@ -122,3 +122,85 @@ def test_incident_create_rejects_description_longer_than_2000():
             description="x" * 2001,
             severity="sev1",
         )
+
+
+def test_incident_create_rejects_invalid_severity():
+    with pytest.raises(ValidationError):
+        IncidentCreate(
+            title="Database outage",
+            description="Primary unavailable",
+            severity="sev0",
+        )
+
+
+def test_incident_create_rejects_invalid_status():
+    with pytest.raises(ValidationError):
+        IncidentCreate(
+            title="Database outage",
+            description="Primary unavailable",
+            severity="sev1",
+            status="closed",
+        )
+
+
+def test_incident_update_rejects_invalid_severity():
+    with pytest.raises(ValidationError):
+        IncidentUpdate(severity="sev0")
+
+
+def test_incident_update_rejects_invalid_status():
+    with pytest.raises(ValidationError):
+        IncidentUpdate(status="closed")
+
+
+def test_incident_read_serializes_nested_timeline_events_from_domain_entity():
+    now = _now()
+    incident = Incident(
+        id=1,
+        title="Database outage",
+        description="Primary unavailable",
+        severity=Severity.SEV1,
+        status=Status.OPEN,
+        created_at=now,
+        updated_at=now,
+        events=[
+            TimelineEvent(
+                id=10,
+                incident_id=1,
+                occurred_at=now,
+                event_type="note",
+                message="Investigation started",
+                created_at=now,
+                updated_at=now,
+            )
+        ],
+    )
+
+    model = IncidentRead.model_validate(incident)
+
+    assert model.id == 1
+    assert len(model.events) == 1
+    assert model.events[0].id == 10
+    assert model.events[0].incident_id == 1
+    assert model.events[0].event_type == "note"
+    assert model.events[0].message == "Investigation started"
+
+
+def test_incident_update_strips_whitespace():
+    model = IncidentUpdate(
+        title="  Database outage  ",
+        description="  Primary unavailable  ",
+    )
+
+    assert model.title == "Database outage"
+    assert model.description == "Primary unavailable"
+
+
+def test_incident_update_rejects_empty_title_after_stripping():
+    with pytest.raises(ValidationError):
+        IncidentUpdate(title="   ")
+
+
+def test_incident_update_rejects_empty_description_after_stripping():
+    with pytest.raises(ValidationError):
+        IncidentUpdate(description="   ")

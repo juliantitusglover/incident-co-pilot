@@ -103,3 +103,45 @@ def test_timeline_event_create_rejects_message_longer_than_5000():
             event_type="note",
             message="x" * 5001,
         )
+
+
+def test_timeline_event_create_rejects_empty_event_type_after_stripping():
+    now = _now()
+
+    with pytest.raises(ValidationError):
+        TimelineEventCreate(
+            occurred_at=now,
+            event_type="   ",
+            message="Investigation started",
+        )
+
+
+def test_timeline_event_create_rejects_empty_message_after_stripping():
+    now = _now()
+
+    with pytest.raises(ValidationError):
+        TimelineEventCreate(
+            occurred_at=now,
+            event_type="note",
+            message="   ",
+        )
+
+
+def test_timeline_event_update_strips_whitespace():
+    model = TimelineEventUpdate(
+        event_type="  note  ",
+        message="  Updated message  ",
+    )
+
+    assert model.event_type == "note"
+    assert model.message == "Updated message"
+
+
+def test_timeline_event_update_rejects_empty_message_after_stripping():
+    with pytest.raises(ValidationError):
+        TimelineEventUpdate(message="   ")
+
+
+def test_timeline_event_update_rejects_empty_event_type_after_stripping():
+    with pytest.raises(ValidationError):
+        TimelineEventUpdate(event_type="   ")
