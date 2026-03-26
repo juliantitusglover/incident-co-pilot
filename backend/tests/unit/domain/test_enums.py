@@ -1,3 +1,5 @@
+import pytest
+
 from backend.domain.incidents.enums import Severity, Status
 
 
@@ -47,3 +49,13 @@ def test_enum_iteration_order_is_stable():
         Status.MITIGATED,
         Status.RESOLVED,
     ]
+
+
+def test_severity_invalid_value_raises_value_error():
+    with pytest.raises(ValueError):
+        Severity("sev0")
+
+
+def test_status_invalid_value_raises_value_error():
+    with pytest.raises(ValueError):
+        Status("closed")
