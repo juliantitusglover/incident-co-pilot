@@ -24,7 +24,9 @@ class FakeIncidentRepo:
         self.exists_calls = 0
         self._next_id = (max(self._incidents.keys()) + 1) if self._incidents else 1
 
-    def list(self, *, status: Status | None = None, severity: Severity | None = None) -> list[Incident]:
+    def list(
+        self, *, status: Status | None = None, severity: Severity | None = None
+    ) -> list[Incident]:
         items = list(self._incidents.values())
         if status is not None:
             items = [i for i in items if i.status == status]
@@ -76,9 +78,9 @@ class FakeIncidentRepo:
 class FakeEventRepo:
     def __init__(self, events: list[TimelineEvent] | None = None):
         self._events: dict[tuple[int, int], TimelineEvent] = {}
-        for e in (events or []):
+        for e in events or []:
             self._events[(e.incident_id, e.id)] = e
-        self._next_id = (max((e.id for e in (events or [])), default=0) + 1)
+        self._next_id = max((e.id for e in (events or [])), default=0) + 1
 
     def list_incident_events(self, incident_id: int) -> list[TimelineEvent]:
         items = [e for (iid, _), e in self._events.items() if iid == incident_id]
@@ -102,7 +104,9 @@ class FakeEventRepo:
         self._next_id += 1
         return e
 
-    def update(self, incident_id: int, event_id: int, changes: dict) -> TimelineEvent | None:
+    def update(
+        self, incident_id: int, event_id: int, changes: dict
+    ) -> TimelineEvent | None:
         e = self._events.get((incident_id, event_id))
         if not e:
             return None
@@ -120,6 +124,7 @@ class FakeUoW:
     Mimics your SqlAlchemyUnitOfWork behaviour:
     commit on success, rollback on exception, context-managed.
     """
+
     def __init__(self, incidents: FakeIncidentRepo, events: FakeEventRepo):
         self.incidents = incidents
         self.events = events
@@ -146,19 +151,27 @@ class FakeUoW:
 def make_incident(
     *,
     incident_id: int = 1,
+    title: str = "Incident",
+    description: str = "Desc",
     status: Status = Status.OPEN,
     severity: Severity = Severity.SEV2,
+    events: list[TimelineEvent] | None = None,
+    created_at: datetime | None = None,
+    updated_at: datetime | None = None,
 ) -> Incident:
     now = _now()
+    created = created_at or now
+    updated = updated_at or created
+
     return Incident(
         id=incident_id,
-        title="Incident",
-        description="Desc",
+        title=title,
+        description=description,
         severity=severity,
         status=status,
-        created_at=now,
-        updated_at=now,
-        events=[],
+        created_at=created,
+        updated_at=updated,
+        events=[] if events is None else list(events),
     )
 
 
@@ -181,7 +194,9 @@ def test_create_incident_trims_and_persists():
     with FakeUoW(incidents, events) as uow:
         uc = IncidentUseCases(uow)
         created = uc.create_incident(
-            CreateIncidentCmd(title="  A  ", description="  B  ", severity=Severity.SEV1)
+            CreateIncidentCmd(
+                title="  A  ", description="  B  ", severity=Severity.SEV1
+            )
         )
         assert created.title == "A"
         assert created.description == "B"
@@ -239,3 +254,323 @@ def test_get_event_missing_incident_returns_incident_not_found():
             uc.get_event(123, 1)
         assert str(e.value) == "Incident not found"
         assert incidents.exists_calls == 1
+
+
+def test_list_incidents_returns_all_when_no_filters():
+    older_time = datetime(2024, 1, 1, tzinfo=timezone.utc)
+    newer_time = datetime(2024, 1, 2, tzinfo=timezone.utc)
+
+    older = make_incident(
+        incident_id=1, title="Older", created_at=older_time, updated_at=older_time
+    )
+    newer = make_incident(
+        incident_id=2, title="Newer", created_at=newer_time, updated_at=newer_time
+    )
+    incidents = FakeIncidentRepo([older, newer])
+    events = FakeEventRepo()
+
+    with FakeUoW(incidents, events) as uow:
+        uc = IncidentUseCases(uow)
+        got = uc.list_incidents()
+
+    assert [i.id for i in got] == [2, 1]
+
+
+def test_list_incidents_passes_status_filter():
+    open_incident = make_incident(incident_id=1, status=Status.OPEN)
+    investigating_incident = make_incident(incident_id=2, status=Status.INVESTIGATING)
+    incidents = FakeIncidentRepo([open_incident, investigating_incident])
+    events = FakeEventRepo()
+
+    with FakeUoW(incidents, events) as uow:
+        uc = IncidentUseCases(uow)
+        got = uc.list_incidents(status=Status.OPEN)
+
+    assert [i.id for i in got] == [1]
+
+
+def test_list_incidents_passes_severity_filter():
+    sev1_incident = make_incident(incident_id=1, severity=Severity.SEV1)
+    sev3_incident = make_incident(incident_id=2, severity=Severity.SEV3)
+    incidents = FakeIncidentRepo([sev1_incident, sev3_incident])
+    events = FakeEventRepo()
+
+    with FakeUoW(incidents, events) as uow:
+        uc = IncidentUseCases(uow)
+        got = uc.list_incidents(severity=Severity.SEV3)
+
+    assert [i.id for i in got] == [2]
+
+
+def test_get_incident_without_events_uses_plain_get():
+    inc = make_incident(incident_id=1)
+    incidents = FakeIncidentRepo([inc])
+    events = FakeEventRepo()
+
+    with FakeUoW(incidents, events) as uow:
+        uc = IncidentUseCases(uow)
+        got = uc.get_incident(1, with_events=False)
+
+    assert got.id == 1
+    assert got.events == []
+
+
+def test_get_incident_with_events_uses_get_with_events():
+    ev = make_event(incident_id=1, event_id=10)
+    inc = make_incident(incident_id=1, events=[ev])
+    incidents = FakeIncidentRepo([inc])
+    events = FakeEventRepo([ev])
+
+    with FakeUoW(incidents, events) as uow:
+        uc = IncidentUseCases(uow)
+        got = uc.get_incident(1, with_events=True)
+
+    assert got.id == 1
+    assert len(got.events) == 1
+    assert got.events[0].id == 10
+
+
+def test_get_incident_missing_raises_not_found():
+    incidents = FakeIncidentRepo([])
+    events = FakeEventRepo()
+
+    with FakeUoW(incidents, events) as uow:
+        uc = IncidentUseCases(uow)
+        with pytest.raises(NotFoundError) as e:
+            uc.get_incident(123)
+
+    assert str(e.value) == "Incident not found"
+
+
+def test_create_incident_rejects_empty_title_after_trimming():
+    incidents = FakeIncidentRepo()
+    events = FakeEventRepo()
+
+    with pytest.raises(ValidationError) as e:
+        with FakeUoW(incidents, events) as uow:
+            uc = IncidentUseCases(uow)
+            uc.create_incident(
+                CreateIncidentCmd(
+                    title="   ",
+                    description="Valid description",
+                    severity=Severity.SEV1,
+                )
+            )
+
+    assert str(e.value) == "title cannot be empty"
+    assert uow.committed is False
+    assert uow.rolled_back is True
+
+
+def test_create_incident_rejects_empty_description_after_trimming():
+    incidents = FakeIncidentRepo()
+    events = FakeEventRepo()
+
+    with pytest.raises(ValidationError) as e:
+        with FakeUoW(incidents, events) as uow:
+            uc = IncidentUseCases(uow)
+            uc.create_incident(
+                CreateIncidentCmd(
+                    title="Valid title",
+                    description="   ",
+                    severity=Severity.SEV1,
+                )
+            )
+
+    assert str(e.value) == "description cannot be empty"
+    assert uow.committed is False
+    assert uow.rolled_back is True
+
+
+def test_create_incident_rolls_back_on_validation_error():
+    incidents = FakeIncidentRepo()
+    events = FakeEventRepo()
+
+    with pytest.raises(ValidationError):
+        with FakeUoW(incidents, events) as uow:
+            uc = IncidentUseCases(uow)
+            uc.create_incident(
+                CreateIncidentCmd(
+                    title="   ",
+                    description="   ",
+                    severity=Severity.SEV1,
+                )
+            )
+
+    assert uow.committed is False
+    assert uow.rolled_back is True
+
+
+def test_update_incident_trims_title_and_description():
+    inc = make_incident(incident_id=1, title="Old", description="Old desc")
+    incidents = FakeIncidentRepo([inc])
+    events = FakeEventRepo()
+
+    with FakeUoW(incidents, events) as uow:
+        uc = IncidentUseCases(uow)
+        updated = uc.update_incident(
+            1,
+            UpdateIncidentCmd(
+                title="  New title  ",
+                description="  New description  ",
+            ),
+        )
+
+    assert updated.title == "New title"
+    assert updated.description == "New description"
+    assert uow.committed is True
+    assert uow.rolled_back is False
+
+
+def test_update_incident_allows_valid_open_to_investigating_transition():
+    inc = make_incident(incident_id=1, status=Status.OPEN)
+    incidents = FakeIncidentRepo([inc])
+    events = FakeEventRepo()
+
+    with FakeUoW(incidents, events) as uow:
+        uc = IncidentUseCases(uow)
+        updated = uc.update_incident(1, UpdateIncidentCmd(status=Status.INVESTIGATING))
+
+    assert updated.status is Status.INVESTIGATING
+    assert uow.committed is True
+    assert uow.rolled_back is False
+
+
+def test_update_incident_allows_valid_investigating_to_mitigated_transition():
+    inc = make_incident(incident_id=1, status=Status.INVESTIGATING)
+    incidents = FakeIncidentRepo([inc])
+    events = FakeEventRepo()
+
+    with FakeUoW(incidents, events) as uow:
+        uc = IncidentUseCases(uow)
+        updated = uc.update_incident(1, UpdateIncidentCmd(status=Status.MITIGATED))
+
+    assert updated.status is Status.MITIGATED
+    assert uow.committed is True
+    assert uow.rolled_back is False
+
+
+def test_update_incident_missing_incident_raises_not_found():
+    incidents = FakeIncidentRepo([])
+    events = FakeEventRepo()
+
+    with pytest.raises(NotFoundError) as e:
+        with FakeUoW(incidents, events) as uow:
+            uc = IncidentUseCases(uow)
+            uc.update_incident(123, UpdateIncidentCmd(title="Updated"))
+
+    assert str(e.value) == "Incident not found"
+    assert uow.committed is False
+    assert uow.rolled_back is True
+
+
+def test_update_incident_rejects_empty_title_after_trimming():
+    inc = make_incident(incident_id=1)
+    incidents = FakeIncidentRepo([inc])
+    events = FakeEventRepo()
+
+    with pytest.raises(ValidationError) as e:
+        with FakeUoW(incidents, events) as uow:
+            uc = IncidentUseCases(uow)
+            uc.update_incident(1, UpdateIncidentCmd(title="   "))
+
+    assert str(e.value) == "title cannot be empty"
+    assert uow.committed is False
+    assert uow.rolled_back is True
+
+
+def test_update_incident_rejects_empty_description_after_trimming():
+    inc = make_incident(incident_id=1)
+    incidents = FakeIncidentRepo([inc])
+    events = FakeEventRepo()
+
+    with pytest.raises(ValidationError) as e:
+        with FakeUoW(incidents, events) as uow:
+            uc = IncidentUseCases(uow)
+            uc.update_incident(1, UpdateIncidentCmd(description="   "))
+
+    assert str(e.value) == "description cannot be empty"
+    assert uow.committed is False
+    assert uow.rolled_back is True
+
+
+def test_delete_incident_happy_path():
+    inc = make_incident(incident_id=1)
+    incidents = FakeIncidentRepo([inc])
+    events = FakeEventRepo()
+
+    with FakeUoW(incidents, events) as uow:
+        uc = IncidentUseCases(uow)
+        uc.delete_incident(1)
+
+    assert 1 not in incidents._incidents
+    assert uow.committed is True
+    assert uow.rolled_back is False
+
+
+def test_delete_incident_missing_raises_not_found():
+    incidents = FakeIncidentRepo([])
+    events = FakeEventRepo()
+
+    with pytest.raises(NotFoundError) as e:
+        with FakeUoW(incidents, events) as uow:
+            uc = IncidentUseCases(uow)
+            uc.delete_incident(123)
+
+    assert str(e.value) == "Incident not found"
+    assert uow.committed is False
+    assert uow.rolled_back is True
+
+
+def test_list_incidents_commits_on_success():
+    incidents = FakeIncidentRepo([make_incident(incident_id=1)])
+    events = FakeEventRepo()
+
+    with FakeUoW(incidents, events) as uow:
+        uc = IncidentUseCases(uow)
+        got = uc.list_incidents()
+
+    assert len(got) == 1
+    assert uow.committed is True
+    assert uow.rolled_back is False
+
+
+def test_get_incident_commits_on_success():
+    inc = make_incident(incident_id=1)
+    incidents = FakeIncidentRepo([inc])
+    events = FakeEventRepo()
+
+    with FakeUoW(incidents, events) as uow:
+        uc = IncidentUseCases(uow)
+        got = uc.get_incident(1)
+
+    assert got.id == 1
+    assert uow.committed is True
+    assert uow.rolled_back is False
+
+
+def test_update_incident_commits_on_success():
+    inc = make_incident(incident_id=1, title="Old")
+    incidents = FakeIncidentRepo([inc])
+    events = FakeEventRepo()
+
+    with FakeUoW(incidents, events) as uow:
+        uc = IncidentUseCases(uow)
+        updated = uc.update_incident(1, UpdateIncidentCmd(title="Updated"))
+
+    assert updated.title == "Updated"
+    assert uow.committed is True
+    assert uow.rolled_back is False
+
+
+def test_delete_incident_rolls_back_on_not_found():
+    incidents = FakeIncidentRepo([])
+    events = FakeEventRepo()
+
+    with pytest.raises(NotFoundError):
+        with FakeUoW(incidents, events) as uow:
+            uc = IncidentUseCases(uow)
+            uc.delete_incident(999)
+
+    assert uow.committed is False
+    assert uow.rolled_back is True
