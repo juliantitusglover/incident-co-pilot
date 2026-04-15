@@ -61,7 +61,6 @@ class FakeIncidentRepo:
         if not inc:
             return None
 
-        # mutate in place (dataclass slots=True allows attribute set)
         for k, v in changes.items():
             setattr(inc, k, v)
         inc.updated_at = _now()
@@ -230,30 +229,39 @@ def test_get_event_happy_path_does_not_call_exists():
         assert got.id == 10
         assert incidents.exists_calls == 0
 
+    assert uow.committed is True
+    assert uow.rolled_back is False
+
 
 def test_get_event_missing_event_checks_exists_then_chooses_error():
     inc = make_incident(incident_id=1)
     incidents = FakeIncidentRepo([inc])
     events = FakeEventRepo()
 
-    with FakeUoW(incidents, events) as uow:
-        uc = IncidentUseCases(uow)
-        with pytest.raises(NotFoundError) as e:
+    with pytest.raises(NotFoundError) as e:
+        with FakeUoW(incidents, events) as uow:
+            uc = IncidentUseCases(uow)
             uc.get_event(1, 999)
-        assert str(e.value) == "Event not found"
-        assert incidents.exists_calls == 1
+        
+    assert str(e.value) == "Event not found"
+    assert incidents.exists_calls == 1
+    assert uow.committed is False
+    assert uow.rolled_back is True
 
 
 def test_get_event_missing_incident_returns_incident_not_found():
     incidents = FakeIncidentRepo([])
     events = FakeEventRepo([])
 
-    with FakeUoW(incidents, events) as uow:
-        uc = IncidentUseCases(uow)
-        with pytest.raises(NotFoundError) as e:
+    with pytest.raises(NotFoundError) as e:    
+        with FakeUoW(incidents, events) as uow:
+            uc = IncidentUseCases(uow)
             uc.get_event(123, 1)
-        assert str(e.value) == "Incident not found"
-        assert incidents.exists_calls == 1
+    
+    assert str(e.value) == "Incident not found"
+    assert incidents.exists_calls == 1
+    assert uow.committed is False
+    assert uow.rolled_back is True
 
 
 def test_list_incidents_returns_all_when_no_filters():
@@ -572,5 +580,275 @@ def test_delete_incident_rolls_back_on_not_found():
             uc = IncidentUseCases(uow)
             uc.delete_incident(999)
 
+    assert uow.committed is False
+    assert uow.rolled_back is True
+
+
+def test_create_event_trims_and_persists():
+    inc = make_incident(incident_id=1)
+    incidents = FakeIncidentRepo([inc])
+    events = FakeEventRepo()
+    occurred_at = _now()
+
+    with FakeUoW(incidents, events) as uow:
+        uc = IncidentUseCases(uow)
+        created = uc.create_event(
+            1,
+            CreateTimelineEventCmd(
+                occurred_at=occurred_at,
+                event_type="  note  ",
+                message="  Investigation started  ",
+            ),
+        )
+    assert created.incident_id == 1
+    assert created.occurred_at == occurred_at
+    assert created.event_type == "note"
+    assert created.message == "Investigation started"
+    assert uow.committed is True
+    assert uow.rolled_back is False
+
+
+def test_create_event_rejects_empty_event_type_after_trimming():
+    inc = make_incident(incident_id=1)
+    incidents = FakeIncidentRepo([inc])
+    events = FakeEventRepo()
+    occurred_at = _now()
+
+    with pytest.raises(ValidationError) as e:
+        with FakeUoW(incidents, events) as uow:
+            uc = IncidentUseCases(uow)
+            uc.create_event(
+                1,
+                CreateTimelineEventCmd(
+                    occurred_at=occurred_at,
+                    event_type="   ",
+                    message="Valid message",
+                ),
+            )
+
+    assert str(e.value) == "event_type cannot be empty"
+    assert uow.committed is False
+    assert uow.rolled_back is True
+
+
+def test_create_event_rejects_empty_message_after_trimming():
+    inc = make_incident(incident_id=1)
+    incidents = FakeIncidentRepo([inc])
+    events = FakeEventRepo()
+    occurred_at = _now()
+
+    with pytest.raises(ValidationError) as e:
+        with FakeUoW(incidents, events) as uow:
+            uc = IncidentUseCases(uow)
+            uc.create_event(
+                1,
+                CreateTimelineEventCmd(
+                    occurred_at=occurred_at,
+                    event_type="note",
+                    message="   ",
+                ),
+            )
+
+    assert str(e.value) == "message cannot be empty"
+    assert uow.committed is False
+    assert uow.rolled_back is True
+
+
+def test_create_event_missing_incident_raises_not_found():
+    incidents = FakeIncidentRepo([])
+    events = FakeEventRepo()
+    occurred_at = _now()
+
+    with pytest.raises(NotFoundError) as e:
+        with FakeUoW(incidents, events) as uow:
+            uc = IncidentUseCases(uow)
+            uc.create_event(
+                123,
+                CreateTimelineEventCmd(
+                    occurred_at=occurred_at,
+                    event_type="note",
+                    message="Investigation started",
+                ),
+            )
+
+    assert str(e.value) == "Incident not found"
+    assert uow.committed is False
+    assert uow.rolled_back is True
+
+
+def test_update_event_trims_fields_on_success():
+    inc = make_incident(incident_id=1)
+    ev = make_event(incident_id=1, event_id=10)
+
+    incidents = FakeIncidentRepo([inc])
+    events = FakeEventRepo([ev])
+
+    with FakeUoW(incidents, events) as uow:
+        uc = IncidentUseCases(uow)
+        updated = uc.update_event(
+            1,
+            10,
+            UpdateTimelineEventCmd(
+                event_type="  mitigation  ",
+                message="  Restarted primary node  ",
+            ),
+        )
+    assert updated.id == 10
+    assert updated.event_type == "mitigation"
+    assert updated.message == "Restarted primary node"
+    assert uow.committed is True
+    assert uow.rolled_back is False
+
+
+def test_update_event_allows_partial_update_of_message_only():
+    inc = make_incident(incident_id=1)
+    ev = make_event(incident_id=1, event_id=10)
+
+    incidents = FakeIncidentRepo([inc])
+    events = FakeEventRepo([ev])
+
+    with FakeUoW(incidents, events) as uow:
+        uc = IncidentUseCases(uow)
+        updated = uc.update_event(
+            1,
+            10,
+            UpdateTimelineEventCmd(
+                message="Updated only message",
+            ),
+        )
+    assert updated.id == 10
+    assert updated.event_type == "note"
+    assert updated.message == "Updated only message"
+    assert uow.committed is True
+    assert uow.rolled_back is False
+
+
+def test_update_event_rejects_empty_event_type_after_trimming():
+    inc = make_incident(incident_id=1)
+    ev = make_event(incident_id=1, event_id=10)
+
+    incidents = FakeIncidentRepo([inc])
+    events = FakeEventRepo([ev])
+
+    with pytest.raises(ValidationError) as e:
+        with FakeUoW(incidents, events) as uow:
+            uc = IncidentUseCases(uow)
+            uc.update_event(
+                1,
+                10,
+                UpdateTimelineEventCmd(
+                    event_type="   ",
+                ),
+            )
+    assert str(e.value) == "event_type cannot be empty"
+    assert uow.committed is False
+    assert uow.rolled_back is True
+
+
+def test_update_event_rejects_empty_message_after_trimming():
+    inc = make_incident(incident_id=1)
+    ev = make_event(incident_id=1, event_id=10)
+
+    incidents = FakeIncidentRepo([inc])
+    events = FakeEventRepo([ev])
+
+    with pytest.raises(ValidationError) as e:
+        with FakeUoW(incidents, events) as uow:
+            uc = IncidentUseCases(uow)
+            uc.update_event(
+                1,
+                10,
+                UpdateTimelineEventCmd(
+                    message="   ",
+                ),
+            )
+    assert str(e.value) == "message cannot be empty"
+    assert uow.committed is False
+    assert uow.rolled_back is True
+
+
+def test_update_event_missing_event_with_existing_incident_raises_event_not_found():
+    inc = make_incident(incident_id=1)
+    incidents = FakeIncidentRepo([inc])
+    events = FakeEventRepo()
+
+    with pytest.raises(NotFoundError) as e:
+        with FakeUoW(incidents, events) as uow:
+            uc = IncidentUseCases(uow)
+            uc.update_event(
+                1,
+                999,
+                UpdateTimelineEventCmd(
+                    message="Updated message",
+                ),
+            )
+    assert str(e.value) == "Event not found"
+    assert incidents.exists_calls == 1
+    assert uow.committed is False
+    assert uow.rolled_back is True
+
+
+def test_update_event_missing_event_with_missing_incident_raises_incident_not_found():
+    incidents = FakeIncidentRepo([])
+    events = FakeEventRepo()
+
+    with pytest.raises(NotFoundError) as e:
+        with FakeUoW(incidents, events) as uow:
+            uc = IncidentUseCases(uow)
+            uc.update_event(
+                123,
+                999,
+                UpdateTimelineEventCmd(
+                    message="Updated message",
+                ),
+            )
+    assert str(e.value) == "Incident not found"
+    assert incidents.exists_calls == 1
+    assert uow.committed is False
+    assert uow.rolled_back is True
+
+
+def test_delete_event_happy_path():
+    inc = make_incident(incident_id=1)
+    ev = make_event(incident_id=1, event_id=10)
+    incidents = FakeIncidentRepo([inc])
+    events = FakeEventRepo([ev])
+
+    with FakeUoW(incidents, events) as uow:
+        uc = IncidentUseCases(uow)
+        uc.delete_event(1, 10)
+
+    assert (1, 10) not in events._events
+    assert uow.committed is True
+    assert uow.rolled_back is False
+
+
+def test_delete_event_missing_event_with_existing_incident_raises_event_not_found():
+    inc = make_incident(incident_id=1)
+    incidents = FakeIncidentRepo([inc])
+    events = FakeEventRepo()
+
+    with pytest.raises(NotFoundError) as e:
+        with FakeUoW(incidents, events) as uow:
+            uc = IncidentUseCases(uow)
+            uc.delete_event(1, 999)
+
+    assert str(e.value) == "Event not found"
+    assert incidents.exists_calls == 1
+    assert uow.committed is False
+    assert uow.rolled_back is True
+
+
+def test_delete_event_missing_event_with_missing_incident_raises_incident_not_found():
+    incidents = FakeIncidentRepo([])
+    events = FakeEventRepo()
+
+    with pytest.raises(NotFoundError) as e:
+        with FakeUoW(incidents, events) as uow:
+            uc = IncidentUseCases(uow)
+            uc.delete_event(123, 999)
+
+    assert str(e.value) == "Incident not found"
+    assert incidents.exists_calls == 1
     assert uow.committed is False
     assert uow.rolled_back is True
