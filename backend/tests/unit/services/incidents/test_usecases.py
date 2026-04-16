@@ -242,7 +242,7 @@ def test_get_event_missing_event_checks_exists_then_chooses_error():
         with FakeUoW(incidents, events) as uow:
             uc = IncidentUseCases(uow)
             uc.get_event(1, 999)
-        
+
     assert str(e.value) == "Event not found"
     assert incidents.exists_calls == 1
     assert uow.committed is False
@@ -253,11 +253,11 @@ def test_get_event_missing_incident_returns_incident_not_found():
     incidents = FakeIncidentRepo([])
     events = FakeEventRepo([])
 
-    with pytest.raises(NotFoundError) as e:    
+    with pytest.raises(NotFoundError) as e:
         with FakeUoW(incidents, events) as uow:
             uc = IncidentUseCases(uow)
             uc.get_event(123, 1)
-    
+
     assert str(e.value) == "Incident not found"
     assert incidents.exists_calls == 1
     assert uow.committed is False
@@ -852,3 +852,163 @@ def test_delete_event_missing_event_with_missing_incident_raises_incident_not_fo
     assert incidents.exists_calls == 1
     assert uow.committed is False
     assert uow.rolled_back is True
+
+
+def test_list_incidents_passes_both_filters_together():
+    test_incident_1 = make_incident(
+        incident_id=1, status=Status.OPEN, severity=Severity.SEV1
+    )
+    test_incident_2 = make_incident(
+        incident_id=2, status=Status.OPEN, severity=Severity.SEV3
+    )
+    test_incident_3 = make_incident(
+        incident_id=3, status=Status.INVESTIGATING, severity=Severity.SEV1
+    )
+
+    incidents = FakeIncidentRepo([test_incident_1, test_incident_2, test_incident_3])
+    events = FakeEventRepo()
+
+    with FakeUoW(incidents, events) as uow:
+        uc = IncidentUseCases(uow)
+        got = uc.list_incidents(status=Status.OPEN, severity=Severity.SEV1)
+
+    assert [i.id for i in got] == [1]
+
+
+def test_get_incident_with_events_missing_raises_not_found():
+    incidents = FakeIncidentRepo([])
+    events = FakeEventRepo()
+
+    with pytest.raises(NotFoundError) as e:
+        with FakeUoW(incidents, events) as uow:
+            uc = IncidentUseCases(uow)
+            uc.get_incident(999, with_events=True)
+
+    assert str(e.value) == "Incident not found"
+    assert uow.committed is False
+    assert uow.rolled_back is True
+
+
+def test_update_incident_partial_update_preserves_other_fields():
+    inc = make_incident(
+        incident_id=1,
+        title="Old title",
+        description="Old desc",
+        severity=Severity.SEV2,
+        status=Status.OPEN,
+    )
+    incidents = FakeIncidentRepo([inc])
+    events = FakeEventRepo()
+
+    with FakeUoW(incidents, events) as uow:
+        uc = IncidentUseCases(uow)
+        updated = uc.update_incident(1, UpdateIncidentCmd(title="Updated"))
+
+    assert updated.title == "Updated"
+    assert updated.description == "Old desc"
+    assert updated.severity is Severity.SEV2
+    assert updated.status is Status.OPEN
+
+
+def test_update_event_partial_update_preserves_other_fields():
+    inc = make_incident(incident_id=1)
+    occurred_at = _now()
+    ev = TimelineEvent(
+        id=10,
+        incident_id=1,
+        occurred_at=occurred_at,
+        event_type="note",
+        message="Original",
+        created_at=occurred_at,
+        updated_at=occurred_at,
+    )
+    incidents = FakeIncidentRepo([inc])
+    events = FakeEventRepo([ev])
+
+    with FakeUoW(incidents, events) as uow:
+        uc = IncidentUseCases(uow)
+        updated = uc.update_event(1, 10, UpdateTimelineEventCmd(message="Updated"))
+
+    assert updated.event_type == "note"
+    assert updated.message == "Updated"
+    assert updated.occurred_at == occurred_at
+
+
+def test_create_event_persists_event_in_fake_repo():
+    inc = make_incident(incident_id=1)
+    incidents = FakeIncidentRepo([inc])
+    events = FakeEventRepo()
+    occurred_at = _now()
+
+    with FakeUoW(incidents, events) as uow:
+        uc = IncidentUseCases(uow)
+        created = uc.create_event(
+            1,
+            CreateTimelineEventCmd(
+                occurred_at=occurred_at,
+                event_type="note",
+                message="Created event",
+            ),
+        )
+
+    assert (1, created.id) in events._events
+    assert events._events[(1, created.id)].message == "Created event"
+
+
+def test_update_event_can_change_occurred_at():
+    inc = make_incident(incident_id=1)
+    old_time = _now()
+    new_time = datetime(2024, 2, 1, tzinfo=timezone.utc)
+    ev = TimelineEvent(
+        id=10,
+        incident_id=1,
+        occurred_at=old_time,
+        event_type="note",
+        message="hello",
+        created_at=old_time,
+        updated_at=old_time,
+    )
+    incidents = FakeIncidentRepo([inc])
+    events = FakeEventRepo([ev])
+
+    with FakeUoW(incidents, events) as uow:
+        uc = IncidentUseCases(uow)
+        updated = uc.update_event(
+            1,
+            10,
+            UpdateTimelineEventCmd(occurred_at=new_time),
+        )
+
+    assert updated.occurred_at == new_time
+    assert uow.committed is True
+    assert uow.rolled_back is False
+
+
+def test_update_event_happy_path_does_not_call_exists():
+    inc = make_incident(incident_id=1)
+    ev = make_event(incident_id=1, event_id=10)
+    incidents = FakeIncidentRepo([inc])
+    events = FakeEventRepo([ev])
+
+    with FakeUoW(incidents, events) as uow:
+        uc = IncidentUseCases(uow)
+        uc.update_event(1, 10, UpdateTimelineEventCmd(message="Updated"))
+
+    assert incidents.exists_calls == 0
+    assert uow.committed is True
+    assert uow.rolled_back is False
+
+
+def test_delete_event_happy_path_does_not_call_exists():
+    inc = make_incident(incident_id=1)
+    ev = make_event(incident_id=1, event_id=10)
+    incidents = FakeIncidentRepo([inc])
+    events = FakeEventRepo([ev])
+
+    with FakeUoW(incidents, events) as uow:
+        uc = IncidentUseCases(uow)
+        uc.delete_event(1, 10)
+
+    assert incidents.exists_calls == 0
+    assert uow.committed is True
+    assert uow.rolled_back is False
