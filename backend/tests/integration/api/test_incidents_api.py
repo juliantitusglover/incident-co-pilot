@@ -1,4 +1,28 @@
-from backend.domain.incidents.enums import Status
+def _create_incident(client_fixture):
+    payload = {
+        "title": "Event Test Incident",
+        "description": "Incident used for event endpoint tests",
+        "status": "open",
+        "severity": "sev2",
+    }
+
+    response = client_fixture.post("/api/v1/incidents", json=payload)
+    assert response.status_code == 201
+    return response.json()["id"]
+
+
+def _create_event(client_fixture, incident_id):
+    payload = {
+        "event_type": "update",
+        "message": "Restarting the primary node.",
+        "occurred_at": "2026-01-23T12:00:00Z",
+    }
+
+    response = client_fixture.post(
+        f"/api/v1/incidents/{incident_id}/events", json=payload
+    )
+    assert response.status_code == 201
+    return response.json()
 
 
 def test_create_and_read_incident(client_fixture):
@@ -78,7 +102,6 @@ def test_update_incident_with_invalid_status_transition(client_fixture):
     patch_res = client_fixture.patch(
         f"/api/v1/incidents/{incident_id}", json={"status": "open"}
     )
-    print(patch_res.json())
     assert patch_res.status_code == 400
     assert (
         patch_res.json()["detail"]
@@ -433,3 +456,219 @@ def test_update_incident_rejects_stripped_empty_description_with_422(client_fixt
     )
 
     assert patch_res.status_code == 422
+
+
+def test_create_event_returns_trimmed_values(client_fixture):
+    incident_id = _create_incident(client_fixture)
+    payload = {
+        "event_type": "  update  ",
+        "message": "  Restarting the primary node.  ",
+        "occurred_at": "2026-01-23T12:00:00Z",
+    }
+
+    response = client_fixture.post(
+        f"/api/v1/incidents/{incident_id}/events", json=payload
+    )
+
+    assert response.status_code == 201
+    body = response.json()
+
+    assert body["event_type"] == "update"
+    assert body["message"] == "Restarting the primary node."
+
+
+def test_create_event_missing_incident_returns_404(client_fixture):
+    payload = {
+        "event_type": "update",
+        "message": "Restarting the primary node.",
+        "occurred_at": "2026-01-23T12:00:00Z",
+    }
+
+    response = client_fixture.post("/api/v1/incidents/999/events", json=payload)
+
+    assert response.status_code == 404
+    assert response.json()["detail"] == "Incident not found"
+
+
+def test_create_event_rejects_invalid_payload_with_422(client_fixture):
+    incident_id = _create_incident(client_fixture)
+    payload = {
+        "event_type": "update",
+        "message": "Restarting the primary node.",
+        "occurred_at": "not-a-datetime",
+    }
+
+    response = client_fixture.post(
+        f"/api/v1/incidents/{incident_id}/events", json=payload
+    )
+
+    assert response.status_code == 422
+
+
+def test_create_event_rejects_stripped_empty_event_type_with_422(client_fixture):
+    incident_id = _create_incident(client_fixture)
+    payload = {
+        "event_type": "   ",
+        "message": "Restarting the primary node.",
+        "occurred_at": "2026-01-23T12:00:00Z",
+    }
+
+    response = client_fixture.post(
+        f"/api/v1/incidents/{incident_id}/events", json=payload
+    )
+
+    assert response.status_code == 422
+
+
+def test_create_event_rejects_stripped_empty_message_with_422(client_fixture):
+    incident_id = _create_incident(client_fixture)
+    payload = {
+        "event_type": "update",
+        "message": "   ",
+        "occurred_at": "2026-01-23T12:00:00Z",
+    }
+
+    response = client_fixture.post(
+        f"/api/v1/incidents/{incident_id}/events", json=payload
+    )
+
+    assert response.status_code == 422
+
+
+def test_update_event_partial_update_preserves_other_fields(client_fixture):
+    incident_id = _create_incident(client_fixture)
+    event = _create_event(client_fixture, incident_id)
+
+    response = client_fixture.patch(
+        f"/api/v1/incidents/{incident_id}/events/{event['id']}",
+        json={"message": "Primary node restarted."},
+    )
+
+    assert response.status_code == 200
+    body = response.json()
+
+    assert body["message"] == "Primary node restarted."
+    assert body["event_type"] == event["event_type"]
+    assert body["occurred_at"] == event["occurred_at"]
+
+
+def test_update_event_returns_trimmed_values(client_fixture):
+    incident_id = _create_incident(client_fixture)
+    event = _create_event(client_fixture, incident_id)
+
+    response = client_fixture.patch(
+        f"/api/v1/incidents/{incident_id}/events/{event['id']}",
+        json={
+            "event_type": "  mitigation  ",
+            "message": "  Primary node restarted.  ",
+        },
+    )
+
+    assert response.status_code == 200
+    body = response.json()
+
+    assert body["event_type"] == "mitigation"
+    assert body["message"] == "Primary node restarted."
+
+
+def test_update_event_can_change_occurred_at(client_fixture):
+    incident_id = _create_incident(client_fixture)
+    event = _create_event(client_fixture, incident_id)
+    new_occurred_at = "2026-01-24T15:30:00Z"
+
+    response = client_fixture.patch(
+        f"/api/v1/incidents/{incident_id}/events/{event['id']}",
+        json={"occurred_at": new_occurred_at},
+    )
+
+    assert response.status_code == 200
+    assert response.json()["occurred_at"] == new_occurred_at
+
+
+def test_update_event_rejects_invalid_payload_with_422(client_fixture):
+    incident_id = _create_incident(client_fixture)
+    event = _create_event(client_fixture, incident_id)
+
+    response = client_fixture.patch(
+        f"/api/v1/incidents/{incident_id}/events/{event['id']}",
+        json={"occurred_at": "not-a-datetime"},
+    )
+
+    assert response.status_code == 422
+
+
+def test_update_event_rejects_stripped_empty_event_type_with_422(client_fixture):
+    incident_id = _create_incident(client_fixture)
+    event = _create_event(client_fixture, incident_id)
+
+    response = client_fixture.patch(
+        f"/api/v1/incidents/{incident_id}/events/{event['id']}",
+        json={"event_type": "   "},
+    )
+
+    assert response.status_code == 422
+
+
+def test_update_event_rejects_stripped_empty_message_with_422(client_fixture):
+    incident_id = _create_incident(client_fixture)
+    event = _create_event(client_fixture, incident_id)
+
+    response = client_fixture.patch(
+        f"/api/v1/incidents/{incident_id}/events/{event['id']}",
+        json={"message": "   "},
+    )
+
+    assert response.status_code == 422
+
+
+def test_update_event_missing_event_returns_404(client_fixture):
+    incident_id = _create_incident(client_fixture)
+
+    response = client_fixture.patch(
+        f"/api/v1/incidents/{incident_id}/events/999",
+        json={"message": "Primary node restarted."},
+    )
+
+    assert response.status_code == 404
+    assert response.json()["detail"] == "Event not found"
+
+
+def test_update_event_missing_incident_returns_404(client_fixture):
+    response = client_fixture.patch(
+        "/api/v1/incidents/999/events/999",
+        json={"message": "Primary node restarted."},
+    )
+
+    assert response.status_code == 404
+    assert response.json()["detail"] == "Incident not found"
+
+
+def test_delete_event_missing_event_returns_404(client_fixture):
+    incident_id = _create_incident(client_fixture)
+
+    response = client_fixture.delete(f"/api/v1/incidents/{incident_id}/events/999")
+
+    assert response.status_code == 404
+    assert response.json()["detail"] == "Event not found"
+
+
+def test_delete_event_missing_incident_returns_404(client_fixture):
+    response = client_fixture.delete("/api/v1/incidents/999/events/999")
+
+    assert response.status_code == 404
+    assert response.json()["detail"] == "Incident not found"
+
+
+def test_delete_event_success_returns_204(client_fixture):
+    incident_id = _create_incident(client_fixture)
+    event = _create_event(client_fixture, incident_id)
+
+    response = client_fixture.delete(
+        f"/api/v1/incidents/{incident_id}/events/{event['id']}"
+    )
+
+    assert response.status_code == 204
+
+    incident_response = client_fixture.get(f"/api/v1/incidents/{incident_id}")
+    assert incident_response.status_code == 200
+    assert incident_response.json()["events"] == []
