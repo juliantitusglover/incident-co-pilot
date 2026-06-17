@@ -25,6 +25,30 @@ Planned workflow:
 
 Health endpoints will be unversioned `/health/*`, while business APIs will be versioned under `/api/v1/*`.
 
+## Docker quickstart
+
+```bash
+cp .env.example .env
+docker compose up --build -d
+docker compose run --rm backend alembic -c backend/alembic.ini upgrade head
+curl http://localhost:8000/health/live
+curl http://localhost:8000/health/ready
+```
+
+API docs are available at http://localhost:8000/docs.
+
+Migrations are manual in v1. `/health/live` can pass before migrations; `/health/ready` should only become healthy after migrations have been applied.
+
+```bash
+docker compose down
+```
+
+To reset the local Docker database, remove the Postgres volume:
+
+```bash
+docker compose down -v
+```
+
 ## Environment variables
 Environment variables are defined in `backend/.env.example`.
 Local development uses `backend/.env` (not committed).
