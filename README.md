@@ -1,6 +1,6 @@
 # Incident Co-Pilot
 
-Incident Co-Pilot is a lightweight incident timeline capture and summarisation tool.
+Incident Co-Pilot is a lightweight API for capturing incidents, tracking timeline events, and preparing incident summaries.
 
 ## Tech stack
 - Backend: FastAPI (Python)
@@ -8,24 +8,19 @@ Incident Co-Pilot is a lightweight incident timeline capture and summarisation t
 - Frontend: Vite + React
 - Tests: pytest 
 
+## Prerequisites
+- Python 3.11+ recommended
+- Node.js 20.19+ (or 22.12+) recommended for Vite 7+ tooling
+- Docker Desktop or Docker Engine for the Docker workflow
+- PostgreSQL for the local non-Docker backend workflow
+
 ## Repo structure
 - `backend/` — FastAPI API service
 - `frontend/` — Vite/React UI
 
-## Prerequisites
-- Python 3.11+ recommended
-- Node.js 20.19+ (or 22.12+) recommended for Vite 7+ tooling
-
-## Backend: run locally (API)
-Planned workflow:
-1) Create environment file:
-   - Copy `backend/.env.example` → `backend/.env`
-2) Start the API:
-   - `fastapi dev backend/main.py`
-
-Health endpoints will be unversioned `/health/*`, while business APIs will be versioned under `/api/v1/*`.
-
 ## Docker quickstart
+
+The Docker workflow uses the root `.env` file. Start by copying the root example file:
 
 ```bash
 cp .env.example .env
@@ -35,9 +30,9 @@ curl http://localhost:8000/health/live
 curl http://localhost:8000/health/ready
 ```
 
-API docs are available at http://localhost:8000/docs.
-
 Migrations are manual in v1. `/health/live` can pass before migrations; `/health/ready` should only become healthy after migrations have been applied.
+
+Stop the Docker services:
 
 ```bash
 docker compose down
@@ -49,31 +44,150 @@ To reset the local Docker database, remove the Postgres volume:
 docker compose down -v
 ```
 
+## API docs and health checks
+
+Interactive API docs are available after the backend is running:
+
+- Swagger UI: http://localhost:8000/docs
+- ReDoc: http://localhost:8000/redoc
+
+Health endpoints are unversioned:
+
+```bash
+curl http://localhost:8000/health/live
+curl http://localhost:8000/health/ready
+```
+
+Business API routes are versioned under `/api/v1/*`.
+
+## Try the API
+
+These examples assume the backend is running on `http://localhost:8000`. They use `jq` to capture IDs; if you do not have `jq` installed, copy the `id` values from the JSON responses manually.
+
+Create an incident:
+
+```bash
+INCIDENT_ID=$(curl -s -X POST http://localhost:8000/api/v1/incidents \
+  -H 'Content-Type: application/json' \
+  -d '{"title":"Database Outage","description":"Production DB is down","status":"investigating","severity":"sev1"}' | jq -r '.id')
+```
+
+List incidents:
+
+```bash
+curl http://localhost:8000/api/v1/incidents
+```
+
+Get the incident:
+
+```bash
+curl http://localhost:8000/api/v1/incidents/$INCIDENT_ID
+```
+
+Update the incident status:
+
+```bash
+curl -X PATCH http://localhost:8000/api/v1/incidents/$INCIDENT_ID \
+  -H 'Content-Type: application/json' \
+  -d '{"status":"resolved"}'
+```
+
+Add a timeline event:
+
+```bash
+EVENT_ID=$(curl -s -X POST http://localhost:8000/api/v1/incidents/$INCIDENT_ID/events \
+  -H 'Content-Type: application/json' \
+  -d '{"event_type":"update","message":"Restarting the primary node.","occurred_at":"2026-01-23T12:00:00Z"}' | jq -r '.id')
+```
+
+View the incident with its events:
+
+```bash
+curl http://localhost:8000/api/v1/incidents/$INCIDENT_ID
+```
+
+Update the timeline event:
+
+```bash
+curl -X PATCH http://localhost:8000/api/v1/incidents/$INCIDENT_ID/events/$EVENT_ID \
+  -H 'Content-Type: application/json' \
+  -d '{"message":"Primary node restarted."}'
+```
+
+Delete the timeline event:
+
+```bash
+curl -X DELETE http://localhost:8000/api/v1/incidents/$INCIDENT_ID/events/$EVENT_ID
+```
+
+Delete the incident:
+
+```bash
+curl -X DELETE http://localhost:8000/api/v1/incidents/$INCIDENT_ID
+```
+
+DELETE requests return `204 No Content` on success. Invalid status transitions return `400`; invalid payloads generally return `422` from FastAPI/Pydantic validation.
+
+## Backend: run locally without Docker
+
+Use this workflow when you want to run the API against a local PostgreSQL server instead of Docker Compose.
+
+1. Create the local database:
+
+```bash
+createdb incident_copilot
+```
+
+2. Create a local backend environment file:
+
+```bash
+cp backend/.env.example backend/.env
+```
+
+3. From the `backend/` directory, install dependencies and run migrations:
+
+```bash
+cd backend
+uv sync
+uv run alembic upgrade head
+```
+
+4. Start the API from the `backend/` directory:
+
+```bash
+PYTHONPATH=.. uv run fastapi dev main.py
+```
+
 ## Environment variables
-Environment variables are defined in `backend/.env.example`.
-Local development uses `backend/.env` (not committed).
+
+- Docker Compose uses the root `.env` file copied from `.env.example`.
+- Local non-Docker backend settings are documented in `backend/.env.example`.
+- Local `.env` files are not committed.
 
 ## Tests
 
 The project uses `pytest` with a transactional isolation strategy. 
 
-### 1. Requirements
 Ensure you have created the local postgres test database:
 
 ```bash
 createdb incident_co_pilot_test
 ```
 
-### 2. Run Tests
+Run the test suite from the backend directory:
 
 ```bash
-pytest
+cd backend
+pytest -q
+pytest -q tests/unit
+pytest -q tests/integration
 ```
 
-## Error handling
-HTTPException will be used for client errors.
-Default validation error behaviour won't be changed for now.
-- `pytest`
+## Troubleshooting
+
+- `/health/ready` returns `503` before migrations because the readiness check requires the `incidents` and `timeline_events` tables.
+- If port `8000` is already in use, stop the other process or change the backend port mapping/command for your local run.
+- To reset the local Docker database, run `docker compose down -v` and then start the services and migrations again.
 
 ## Database & Migrations
 ### 1. Initial Setup
@@ -81,13 +195,13 @@ Default validation error behaviour won't be changed for now.
 Ensure your local Postgres server is running and create the project database:
 
 ```bash
-createdb incident_co_pilot
+createdb incident_copilot
 ```
 
 Ensure your .env file in the backend/ directory contains the correct connection string:
 
 ```
-DATABASE_URL=postgresql://jtg@localhost:5432/incident_co_pilot
+DATABASE_URL=postgresql+psycopg://postgres:postgres@localhost:5432/incident_copilot
 ```
 
 ### 2. Run Migrations
@@ -99,19 +213,19 @@ Alembic migrations must be executed from the backend/ directory to ensure Python
 cd backend
 
 # Apply all migrations to the latest version (Initialize Schema)
-alembic upgrade head
+uv run alembic upgrade head
 ```
 
 ### 3. Development Workflow
 
 - Create a new migration: After modifying models in backend/db/models/, generate a new version script:
 ```bash
-alembic revision --autogenerate -m "describe your changes"
+uv run alembic revision --autogenerate -m "describe your changes"
 ```
 
 - Check migration status: Verify which migration version your local DB is currently on:
 ```bash
-alembic current
+uv run alembic current
 ```
 
 ### Reset Local Database
@@ -120,26 +234,28 @@ If the database state becomes inconsistent or you wish to wipe all data for a fr
 
 1. Drop the database:
 ```bash
-dropdb incident_co_pilot
+dropdb incident_copilot
 ```
 2. Re-create the database:
 
 ```bash
-createdb incident_co_pilot
+createdb incident_copilot
 ```
 3. Re-run migrations:
 
 ```bash
 cd backend
-alembic upgrade head
+uv run alembic upgrade head
 ```
-[!IMPORTANT]:Dropping the database is the recommended reset method because it also removes custom PostgreSQL types (like the severity and status Enums) and the alembic_version tracking table.
+
+> [!IMPORTANT]
+> Dropping the database is the recommended reset method because it removes local schema objects and the `alembic_version` tracking table.
 
 ### Readiness Check
 
 The application includes a built-in health check to verify database connectivity and schema integrity. You can verify this via the API:
 
-- Endpoint: GET /ready
+- Endpoint: `GET /health/ready`
 
 - Expected Response:
 ```JSON
@@ -213,7 +329,7 @@ I have implemented three composite/ordered indexes. These were chosen because Po
 
     Index Name: ix_incidents_status_created_at
 
-    Justification: Users frequently filter by "Open" or "Investigating" incidents. This composite index follows the Equality-Sort-Range (ESR) rule: it first narrows down the rows by the exact status and then provides them in the pre-sorted order of created_at.
+    Justification: Users frequently filter by `open` or `investigating` incidents. This composite index follows the Equality-Sort-Range (ESR) rule: it first narrows down the rows by the exact status and then provides them in the pre-sorted order of created_at.
 
 ## API Contract & Design Rules
 
@@ -227,9 +343,9 @@ This project follows a "Schema-First" approach using Pydantic for validation and
 
     Enumerations:
 
-        Status: Strict string-based enum (IDENTIFIED, INVESTIGATING, DEGRADED, RESOLVED).
+        Status: Strict string-based enum (open, investigating, mitigated, resolved).
 
-        Severity: Strict string-based enum (SEV1, SEV2, SEV3, SEV4).
+        Severity: Strict string-based enum (sev1, sev2, sev3, sev4).
 
     Strings: All input strings are automatically stripped of leading/trailing whitespace.
 
