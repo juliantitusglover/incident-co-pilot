@@ -381,5 +381,9 @@ The API uses standard FastAPI/OpenAPI error shapes:
 
     503 Service Unavailable: Database or critical dependency health check failed.
 
-## License
-MIT (see `LICENSE`).
+## Project docs
+
+- [Security policy](SECURITY.md)
+- [Privacy notes](PRIVACY.md)
+- [Contributing](CONTRIBUTING.md)
+- [License](LICENSE)
