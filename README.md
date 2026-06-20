@@ -386,4 +386,6 @@ The API uses standard FastAPI/OpenAPI error shapes:
 - [Security policy](SECURITY.md)
 - [Privacy notes](PRIVACY.md)
 - [Contributing](CONTRIBUTING.md)
+- [Changelog](CHANGELOG.md)
+- [Release checklist](docs/RELEASE_CHECKLIST.md)
 - [License](LICENSE)
