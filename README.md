@@ -5,18 +5,17 @@ Incident Co-Pilot is a lightweight API for capturing incidents, tracking timelin
 ## Tech stack
 - Backend: FastAPI (Python)
 - DB: Postgres
-- Frontend: Vite + React
-- Tests: pytest 
+- Tests: pytest via uv
 
 ## Prerequisites
 - Python 3.11+ recommended
-- Node.js 20.19+ (or 22.12+) recommended for Vite 7+ tooling
-- Docker Desktop or Docker Engine for the Docker workflow
+- uv for Python dependency management and command execution
+- Docker Desktop or Docker Engine with Docker Compose for the Docker workflow
 - PostgreSQL for the local non-Docker backend workflow
 
 ## Repo structure
 - `backend/` — FastAPI API service
-- `frontend/` — Vite/React UI
+- `docs/` — release and project documentation
 
 ## Docker quickstart
 
@@ -30,7 +29,7 @@ curl http://localhost:8000/health/live
 curl http://localhost:8000/health/ready
 ```
 
-Migrations are manual in v1. `/health/live` can pass before migrations; `/health/ready` should only become healthy after migrations have been applied.
+Migrations are manual in the current self-hosted version. `/health/live` can pass before migrations; `/health/ready` should only become healthy after migrations have been applied.
 
 Stop the Docker services:
 
@@ -178,10 +177,12 @@ Run the test suite from the backend directory:
 
 ```bash
 cd backend
-pytest -q
-pytest -q tests/unit
-pytest -q tests/integration
+DATABASE_URL=postgresql+psycopg2://$USER@localhost:5432/incident_co_pilot_test uv run pytest -q
+uv run pytest -q tests/unit
+DATABASE_URL=postgresql+psycopg2://$USER@localhost:5432/incident_co_pilot_test uv run pytest -q tests/integration
 ```
+
+The `DATABASE_URL` override avoids assuming a project-specific local PostgreSQL username.
 
 ## Troubleshooting
 
@@ -201,7 +202,7 @@ createdb incident_copilot
 Ensure your .env file in the backend/ directory contains the correct connection string:
 
 ```
-DATABASE_URL=postgresql+psycopg://postgres:postgres@localhost:5432/incident_copilot
+DATABASE_URL=postgresql+psycopg2://postgres:postgres@localhost:5432/incident_copilot
 ```
 
 ### 2. Run Migrations

@@ -2,7 +2,7 @@
 
 This is a manual release checklist for Incident Co-Pilot.
 
-It is intentionally lightweight for the current local/self-hosted v1 project.
+It is intentionally lightweight for the current local/self-hosted project.
 
 Release automation may be added later.
 
@@ -33,9 +33,9 @@ Versioning is not centralized yet. Confirm each version source matches the targe
 
 ```bash
 cd backend
-pytest -q
-pytest -q tests/unit
-pytest -q tests/integration
+uv run pytest -q
+uv run pytest -q tests/unit
+uv run pytest -q tests/integration
 ```
 
 ## Docker Validation

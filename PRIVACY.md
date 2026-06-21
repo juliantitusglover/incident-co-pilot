@@ -1,12 +1,12 @@
 # Privacy Notes
 
-Incident Co-Pilot v1 is a local/self-hosted incident timeline API. These notes describe what the current app stores and the privacy responsibilities of running it.
+Incident Co-Pilot 0.1.x is a local/self-hosted incident timeline API. These notes describe what the current app stores and the privacy responsibilities of running it.
 
 This is not a legal privacy policy.
 
 ## What Data the App Stores
 
-The current v1 app stores:
+The current early version stores:
 
 - Incident title.
 - Incident description.
@@ -33,7 +33,7 @@ Maintainers do not receive data from self-hosted instances.
 
 ## AI and External Providers
 
-Current v1 app code does not implement sending incident data to AI services or other external providers.
+Current app code does not implement sending incident data to AI services or other external providers.
 
 `OPENAI_API_KEY` configuration and `langchain` / `langchain-openai` dependencies exist for future optional AI work. Future AI features should document what data is sent to external providers and should require explicit configuration.
 
