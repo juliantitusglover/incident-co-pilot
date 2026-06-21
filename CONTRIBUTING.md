@@ -30,9 +30,9 @@ Run tests from the backend directory:
 
 ```bash
 cd backend
-pytest -q
-pytest -q tests/unit
-pytest -q tests/integration
+uv run pytest -q
+uv run pytest -q tests/unit
+uv run pytest -q tests/integration
 ```
 
 Migration or persistence changes should also run the relevant Alembic and Docker checks described in `README.md`.
