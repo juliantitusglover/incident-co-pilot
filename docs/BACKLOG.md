@@ -15,7 +15,7 @@ These items are candidates for planning around v0.2.0. They are not guaranteed r
 
 ### API Usability
 
-- [must-have] Decide and document incident list pagination strategy.
+- [must-have] Decide and document incident list pagination strategy. See [Pagination strategy](PAGINATION_STRATEGY.md); implementation is still pending.
 - [must-have] Implement incident list pagination.
 - [must-have] Document incident list sort order.
 - [should-have] Review status/severity filter naming and OpenAPI examples.
