@@ -16,7 +16,7 @@ The format is inspired by Keep a Changelog.
 
 ### Security
 
-## 0.1.0 - Planned
+## 0.1.0 - 2026-06-27
 
 ### Added
 
