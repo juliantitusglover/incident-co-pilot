@@ -10,6 +10,8 @@ The format is inspired by Keep a Changelog.
 
 ### Added
 
+- Added roadmap and backlog planning docs for v0.2.0 candidates.
+
 ### Changed
 
 ### Fixed
