@@ -3,6 +3,18 @@ def _response_schema(openapi: dict, path: str, method: str, status_code: int) ->
     return response["content"]["application/json"]["schema"]
 
 
+def _parameters_by_name(operation: dict) -> dict:
+    return {parameter["name"]: parameter for parameter in operation["parameters"]}
+
+
+def _parameter_example(parameter: dict):
+    if "example" in parameter:
+        return parameter["example"]
+    if "examples" in parameter["schema"]:
+        return parameter["schema"]["examples"][0]
+    return parameter["schema"].get("example")
+
+
 def test_health_openapi_documents_response_schemas(app_fixture):
     openapi = app_fixture.openapi()
 
@@ -58,3 +70,39 @@ def test_incident_openapi_documents_custom_error_responses(app_fixture):
     )["$ref"].endswith("/ErrorResponse")
     assert event_patch["responses"]["404"]["description"] == "Incident or event not found"
     assert event_delete["responses"]["404"]["description"] == "Incident or event not found"
+
+
+def test_incident_list_openapi_documents_pagination_metadata(app_fixture):
+    openapi = app_fixture.openapi()
+    operation = openapi["paths"]["/api/v1/incidents"]["get"]
+    parameters = _parameters_by_name(operation)
+    response_content = operation["responses"]["200"]["content"]["application/json"]
+    example = response_content["example"]
+
+    assert response_content["schema"]["$ref"].endswith("/IncidentListResponse")
+    assert set(parameters) >= {
+        "status_filter",
+        "severity_filter",
+        "limit",
+        "offset",
+    }
+
+    limit_schema = parameters["limit"]["schema"]
+    assert limit_schema["default"] == 50
+    assert limit_schema["minimum"] == 1
+    assert limit_schema["maximum"] == 100
+    assert _parameter_example(parameters["limit"]) == 25
+
+    offset_schema = parameters["offset"]["schema"]
+    assert offset_schema["default"] == 0
+    assert offset_schema["minimum"] == 0
+    assert _parameter_example(parameters["offset"]) == 0
+
+    for name in ("status_filter", "severity_filter", "limit", "offset"):
+        assert parameters[name]["description"]
+
+    assert _parameter_example(parameters["status_filter"]) == "open"
+    assert _parameter_example(parameters["severity_filter"]) == "sev1"
+    assert set(example) == {"items", "limit", "offset", "total"}
+    assert example["items"][0]["status"] == "investigating"
+    assert example["items"][0]["severity"] == "sev1"

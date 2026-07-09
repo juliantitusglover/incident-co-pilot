@@ -2,16 +2,15 @@
 
 ## Status
 
-- Proposed for v0.2.0.
-- Strategy document only.
-- Not implemented yet.
+- Implemented during v0.2.0 development.
+- Records the chosen strategy and implementation reference.
 
 ## Current Behavior
 
-- `GET /api/v1/incidents` returns a bare array.
+- `GET /api/v1/incidents` returns a paginated response envelope.
 - The endpoint supports `status_filter` and `severity_filter`.
 - Results are ordered newest first using `created_at DESC` and `id DESC`.
-- No pagination metadata exists today.
+- Pagination metadata includes `items`, `limit`, `offset`, and `total`.
 
 ## Goals
 
@@ -37,14 +36,14 @@ Existing filters remain:
 
 Pagination applies after filters and stable ordering.
 
-## Proposed Request Examples
+## Request Examples
 
 ```http
 GET /api/v1/incidents?limit=50&offset=0
 GET /api/v1/incidents?status_filter=open&severity_filter=sev1&limit=25&offset=0
 ```
 
-## Proposed Response Shape
+## Response Shape
 
 ```json
 {
@@ -82,24 +81,24 @@ GET /api/v1/incidents?status_filter=open&severity_filter=sev1&limit=25&offset=0
 
 - This is a breaking response-shape change from v0.1.0.
 - Since the project is still pre-1.0, this is acceptable if documented clearly.
-- The change should be called out in `CHANGELOG.md` and `README.md` when implemented.
+- The change is called out in `CHANGELOG.md` and `README.md`.
 - Clients using the old bare-array response will need to read from `items`.
 
-## Implementation Plan
+## Implementation Reference
 
-Later implementation should:
+The implementation:
 
-- Add pagination query parameters to the route.
-- Add an `IncidentListResponse` schema with `items`, `limit`, `offset`, and `total`.
-- Update the usecase/service method signature.
-- Update the repository port and SQLAlchemy implementation.
-- Apply filters first, then ordering, then limit/offset.
-- Add a count query for `total`.
-- Update API tests, service tests, repository tests, OpenAPI metadata tests, README examples, and changelog.
+- Added pagination query parameters to the route.
+- Added an `IncidentListResponse` schema with `items`, `limit`, `offset`, and `total`.
+- Updated the usecase/service method signature.
+- Updated the repository port and SQLAlchemy implementation.
+- Applies filters first, then ordering, then limit/offset.
+- Added a count query for `total`.
+- Updated API tests, service tests, repository tests, OpenAPI metadata tests, README examples, and changelog.
 
 ## Test Plan
 
-Implementation should cover:
+Coverage includes:
 
 - Default pagination returns `limit` `50` and `offset` `0`.
 - `limit` parameter works.
