@@ -24,8 +24,22 @@ class IncidentUseCases:
     def __init__(self, uow: UnitOfWork):
         self.uow = uow
 
-    def list_incidents(self, *, status: Status | None = None, severity: Severity | None = None) -> list[Incident]:
-        return self.uow.incidents.list(status=status, severity=severity)
+    def list_incidents(
+        self,
+        *,
+        status: Status | None = None,
+        severity: Severity | None = None,
+        limit: int = 50,
+        offset: int = 0,
+    ) -> tuple[list[Incident], int]:
+        incidents = self.uow.incidents.list(
+            status=status,
+            severity=severity,
+            limit=limit,
+            offset=offset,
+        )
+        total = self.uow.incidents.count(status=status, severity=severity)
+        return incidents, total
 
     def get_incident(self, incident_id: int, *, with_events: bool = False) -> Incident:
         incident = (

@@ -77,6 +77,34 @@ List incidents:
 curl http://localhost:8000/api/v1/incidents
 ```
 
+Incident lists return newest incidents first (`created_at DESC`, then `id DESC`) in a paginated envelope. The default page is `limit=50` and `offset=0`:
+
+```json
+{
+  "items": [
+    {
+      "id": 1,
+      "title": "Database Outage",
+      "status": "investigating",
+      "severity": "sev1",
+      "created_at": "2026-01-23T12:00:00Z",
+      "updated_at": "2026-01-23T12:00:00Z"
+    }
+  ],
+  "limit": 50,
+  "offset": 0,
+  "total": 1
+}
+```
+
+Use `limit` and `offset` to request a page:
+
+```bash
+curl "http://localhost:8000/api/v1/incidents?limit=25&offset=0"
+```
+
+`status_filter` and `severity_filter` can still be combined with `limit` and `offset`; `total` is the filtered total.
+
 Get the incident:
 
 ```bash

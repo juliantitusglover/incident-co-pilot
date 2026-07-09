@@ -87,6 +87,18 @@ def test_list_incidents_returns_newest_first(db_session):
     assert [incident.id for incident in incidents] == [second.id, first.id]
 
 
+def test_list_incidents_applies_limit_and_offset(db_session):
+    repo = _repo(db_session)
+    repo.create(_incident_data(title="Oldest Incident"))
+    second = repo.create(_incident_data(title="Middle Incident"))
+    repo.create(_incident_data(title="Newest Incident"))
+
+    incidents = repo.list(limit=1, offset=1)
+
+    assert [incident.id for incident in incidents] == [second.id]
+    assert repo.count() == 3
+
+
 def test_list_incidents_filters_by_status(db_session):
     repo = _repo(db_session)
     open_incident = repo.create(
@@ -100,6 +112,7 @@ def test_list_incidents_filters_by_status(db_session):
 
     assert [incident.id for incident in incidents] == [open_incident.id]
     assert all(incident.status == Status.OPEN for incident in incidents)
+    assert repo.count(status=Status.OPEN) == 1
 
 
 def test_list_incidents_filters_by_severity(db_session):
@@ -113,6 +126,7 @@ def test_list_incidents_filters_by_severity(db_session):
 
     assert [incident.id for incident in incidents] == [sev3_incident.id]
     assert all(incident.severity == Severity.SEV3 for incident in incidents)
+    assert repo.count(severity=Severity.SEV3) == 1
 
 
 def test_list_incidents_filters_by_status_and_severity(db_session):
@@ -144,6 +158,7 @@ def test_list_incidents_filters_by_status_and_severity(db_session):
     assert [incident.id for incident in incidents] == [matching.id]
     assert incidents[0].status == Status.OPEN
     assert incidents[0].severity == Severity.SEV1
+    assert repo.count(status=Status.OPEN, severity=Severity.SEV1) == 1
 
 
 def test_update_incident_persists_changes(db_session):

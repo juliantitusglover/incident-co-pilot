@@ -11,6 +11,25 @@ def _create_incident(client_fixture):
     return response.json()["id"]
 
 
+def _create_list_incident(
+    client_fixture,
+    title,
+    status="open",
+    severity="sev2",
+):
+    response = client_fixture.post(
+        "/api/v1/incidents",
+        json={
+            "title": title,
+            "description": f"{title} description",
+            "status": status,
+            "severity": severity,
+        },
+    )
+    assert response.status_code == 201
+    return response.json()
+
+
 def _create_event(client_fixture, incident_id):
     payload = {
         "event_type": "update",
@@ -109,133 +128,129 @@ def test_update_incident_with_invalid_status_transition(client_fixture):
     )
 
 
-def test_list_incidents_returns_empty_list_initially(client_fixture):
+def test_list_incidents_returns_default_pagination_envelope(client_fixture):
+    first = _create_list_incident(client_fixture, "Older Incident")
+    second = _create_list_incident(client_fixture, "Middle Incident")
+    third = _create_list_incident(client_fixture, "Newer Incident")
+
     res = client_fixture.get("/api/v1/incidents")
 
     assert res.status_code == 200
-    assert res.json() == []
+    body = res.json()
+
+    assert isinstance(body, dict)
+    assert set(body) >= {"items", "limit", "offset", "total"}
+    assert body["limit"] == 50
+    assert body["offset"] == 0
+    assert body["total"] == 3
+    assert [item["id"] for item in body["items"]] == [
+        third["id"],
+        second["id"],
+        first["id"],
+    ]
+    assert set(body["items"][0]) >= {
+        "id",
+        "title",
+        "status",
+        "severity",
+        "created_at",
+        "updated_at",
+    }
+    assert body["items"][0]["title"] == "Newer Incident"
+    assert body["items"][1]["title"] == "Middle Incident"
+    assert body["items"][2]["title"] == "Older Incident"
 
 
 def test_list_incidents_returns_newest_first(client_fixture):
-    first_payload = {
-        "title": "Older Incident",
-        "description": "Older description",
-        "status": "open",
-        "severity": "sev2",
-    }
-    second_payload = {
-        "title": "Newer Incident",
-        "description": "Newer description",
-        "status": "open",
-        "severity": "sev2",
-    }
-
-    first_res = client_fixture.post("/api/v1/incidents", json=first_payload)
-    second_res = client_fixture.post("/api/v1/incidents", json=second_payload)
-
-    assert first_res.status_code == 201
-    assert second_res.status_code == 201
-
-    first_id = first_res.json()["id"]
-    second_id = second_res.json()["id"]
+    first = _create_list_incident(client_fixture, "Older Incident")
+    second = _create_list_incident(client_fixture, "Newer Incident")
 
     list_res = client_fixture.get("/api/v1/incidents")
 
     assert list_res.status_code == 200
     body = list_res.json()
 
-    assert [item["id"] for item in body] == [second_id, first_id]
-    assert body[0]["title"] == "Newer Incident"
-    assert body[1]["title"] == "Older Incident"
+    assert [item["id"] for item in body["items"]] == [second["id"], first["id"]]
+    assert body["items"][0]["title"] == "Newer Incident"
+    assert body["items"][1]["title"] == "Older Incident"
+
+
+def test_list_incidents_honors_limit_parameter(client_fixture):
+    _create_list_incident(client_fixture, "Oldest Incident")
+    _create_list_incident(client_fixture, "Middle Incident")
+    _create_list_incident(client_fixture, "Newest Incident")
+
+    res = client_fixture.get("/api/v1/incidents", params={"limit": 2})
+
+    assert res.status_code == 200
+    body = res.json()
+    assert len(body["items"]) == 2
+    assert body["limit"] == 2
+    assert body["offset"] == 0
+    assert body["total"] == 3
+
+
+def test_list_incidents_honors_offset_parameter(client_fixture):
+    first = _create_list_incident(client_fixture, "Oldest Incident")
+    second = _create_list_incident(client_fixture, "Middle Incident")
+    third = _create_list_incident(client_fixture, "Newest Incident")
+
+    res = client_fixture.get(
+        "/api/v1/incidents",
+        params={"limit": 1, "offset": 1},
+    )
+
+    assert res.status_code == 200
+    body = res.json()
+    assert len(body["items"]) == 1
+    assert body["limit"] == 1
+    assert body["offset"] == 1
+    assert body["total"] == 3
+    assert [item["id"] for item in body["items"]] == [second["id"]]
 
 
 def test_list_incidents_filters_by_status(client_fixture):
-    client_fixture.post(
-        "/api/v1/incidents",
-        json={
-            "title": "Open Incident",
-            "description": "Open description",
-            "status": "open",
-            "severity": "sev2",
-        },
-    )
-    client_fixture.post(
-        "/api/v1/incidents",
-        json={
-            "title": "Investigating Incident",
-            "description": "Investigating description",
-            "status": "investigating",
-            "severity": "sev2",
-        },
+    _create_list_incident(client_fixture, "Open Incident")
+    _create_list_incident(
+        client_fixture,
+        "Investigating Incident",
+        status="investigating",
     )
 
     res = client_fixture.get("/api/v1/incidents", params={"status_filter": "open"})
 
     assert res.status_code == 200
     body = res.json()
+    items = body["items"]
 
-    assert len(body) == 1
-    assert body[0]["status"] == "open"
-    assert body[0]["title"] == "Open Incident"
+    assert len(items) == 1
+    assert items[0]["status"] == "open"
+    assert items[0]["title"] == "Open Incident"
 
 
 def test_list_incidents_filters_by_severity(client_fixture):
-    client_fixture.post(
-        "/api/v1/incidents",
-        json={
-            "title": "SEV1 Incident",
-            "description": "SEV1 description",
-            "status": "open",
-            "severity": "sev1",
-        },
-    )
-    client_fixture.post(
-        "/api/v1/incidents",
-        json={
-            "title": "SEV3 Incident",
-            "description": "SEV3 description",
-            "status": "open",
-            "severity": "sev3",
-        },
-    )
+    _create_list_incident(client_fixture, "SEV1 Incident", severity="sev1")
+    _create_list_incident(client_fixture, "SEV3 Incident", severity="sev3")
 
     res = client_fixture.get("/api/v1/incidents", params={"severity_filter": "sev3"})
 
     assert res.status_code == 200
     body = res.json()
+    items = body["items"]
 
-    assert len(body) == 1
-    assert body[0]["severity"] == "sev3"
-    assert body[0]["title"] == "SEV3 Incident"
+    assert len(items) == 1
+    assert items[0]["severity"] == "sev3"
+    assert items[0]["title"] == "SEV3 Incident"
 
 
 def test_list_incidents_filters_by_status_and_severity(client_fixture):
-    client_fixture.post(
-        "/api/v1/incidents",
-        json={
-            "title": "Matching Incident",
-            "description": "Matching description",
-            "status": "open",
-            "severity": "sev1",
-        },
-    )
-    client_fixture.post(
-        "/api/v1/incidents",
-        json={
-            "title": "Wrong Severity",
-            "description": "Wrong severity description",
-            "status": "open",
-            "severity": "sev3",
-        },
-    )
-    client_fixture.post(
-        "/api/v1/incidents",
-        json={
-            "title": "Wrong Status",
-            "description": "Wrong status description",
-            "status": "investigating",
-            "severity": "sev1",
-        },
+    _create_list_incident(client_fixture, "Matching Incident", severity="sev1")
+    _create_list_incident(client_fixture, "Wrong Severity", severity="sev3")
+    _create_list_incident(
+        client_fixture,
+        "Wrong Status",
+        status="investigating",
+        severity="sev1",
     )
 
     res = client_fixture.get(
@@ -245,11 +260,53 @@ def test_list_incidents_filters_by_status_and_severity(client_fixture):
 
     assert res.status_code == 200
     body = res.json()
+    items = body["items"]
 
-    assert len(body) == 1
-    assert body[0]["title"] == "Matching Incident"
-    assert body[0]["status"] == "open"
-    assert body[0]["severity"] == "sev1"
+    assert len(items) == 1
+    assert items[0]["title"] == "Matching Incident"
+    assert items[0]["status"] == "open"
+    assert items[0]["severity"] == "sev1"
+
+
+def test_list_incidents_combines_filters_with_pagination(client_fixture):
+    first_match = _create_list_incident(
+        client_fixture,
+        "Older Matching Incident",
+        severity="sev1",
+    )
+    _create_list_incident(client_fixture, "Wrong Severity", severity="sev3")
+    _create_list_incident(
+        client_fixture,
+        "Wrong Status",
+        status="investigating",
+        severity="sev1",
+    )
+    second_match = _create_list_incident(
+        client_fixture,
+        "Newer Matching Incident",
+        severity="sev1",
+    )
+
+    res = client_fixture.get(
+        "/api/v1/incidents",
+        params={
+            "status_filter": "open",
+            "severity_filter": "sev1",
+            "limit": 1,
+            "offset": 0,
+        },
+    )
+
+    assert res.status_code == 200
+    body = res.json()
+    assert len(body["items"]) == 1
+    assert body["limit"] == 1
+    assert body["offset"] == 0
+    assert body["total"] == 2
+    assert body["items"][0]["id"] == second_match["id"]
+    assert body["items"][0]["id"] != first_match["id"]
+    assert body["items"][0]["status"] == "open"
+    assert body["items"][0]["severity"] == "sev1"
 
 
 def test_create_incident_response_returns_trimmed_values(client_fixture):
@@ -436,6 +493,19 @@ def test_list_incidents_rejects_invalid_severity_filter_with_422(client_fixture)
     )
 
     assert response.status_code == 422
+
+
+def test_list_incidents_rejects_invalid_pagination_params_with_422(client_fixture):
+    invalid_params = (
+        {"limit": 0},
+        {"limit": 101},
+        {"offset": -1},
+    )
+
+    for params in invalid_params:
+        response = client_fixture.get("/api/v1/incidents", params=params)
+
+        assert response.status_code == 422, params
 
 
 def test_update_incident_rejects_stripped_empty_description_with_422(client_fixture):

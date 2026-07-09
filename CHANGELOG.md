@@ -10,10 +10,13 @@ The format is inspired by Keep a Changelog.
 
 ### Added
 
+- Added limit/offset pagination support for incident lists.
 - Added incident list pagination strategy documentation for v0.2.0 planning.
 - Added roadmap and backlog planning docs for v0.2.0 candidates.
 
 ### Changed
+
+- GET `/api/v1/incidents` now returns a paginated response envelope instead of a bare array.
 
 ### Fixed
 
