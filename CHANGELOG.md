@@ -10,6 +10,7 @@ The format is inspired by Keep a Changelog.
 
 ### Added
 
+- Added OpenAPI descriptions and examples for incident list pagination.
 - Added limit/offset pagination support for incident lists.
 - Added incident list pagination strategy documentation for v0.2.0 planning.
 - Added roadmap and backlog planning docs for v0.2.0 candidates.

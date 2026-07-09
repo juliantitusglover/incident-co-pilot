@@ -29,18 +29,66 @@ SERVICE_VALIDATION_RESPONSE = {
     "model": ErrorResponse,
     "description": "Service validation error",
 }
+INCIDENT_LIST_RESPONSE_EXAMPLE = {
+    "items": [
+        {
+            "id": 1,
+            "title": "Database Outage",
+            "status": "investigating",
+            "severity": "sev1",
+            "created_at": "2026-06-28T13:45:35.344353+01:00",
+            "updated_at": "2026-06-28T13:45:35.344353+01:00",
+        }
+    ],
+    "limit": 50,
+    "offset": 0,
+    "total": 1,
+}
 
 @router.get(
     "",
     response_model=IncidentListResponse,
     summary="List incidents",
-    description="List incidents, optionally filtered by status and severity.",
+    description=(
+        "List paginated incident summaries, optionally filtered by status and "
+        "severity. Results are ordered newest first by created_at DESC, id DESC. "
+        "The response envelope contains items, limit, offset, and total."
+    ),
+    responses={
+        200: {
+            "description": "Paginated incident list response",
+            "content": {
+                "application/json": {
+                    "example": INCIDENT_LIST_RESPONSE_EXAMPLE,
+                }
+            },
+        }
+    },
 )
 def get_all_incidents(
-    status_filter: Status | None = None,
-    severity_filter: Severity | None = None,
-    limit: int = Query(default=50, ge=1, le=100),
-    offset: int = Query(default=0, ge=0),
+    status_filter: Status | None = Query(
+        default=None,
+        description="Filter incidents by status.",
+        examples=["open"],
+    ),
+    severity_filter: Severity | None = Query(
+        default=None,
+        description="Filter incidents by severity.",
+        examples=["sev1"],
+    ),
+    limit: int = Query(
+        default=50,
+        ge=1,
+        le=100,
+        description="Maximum number of incidents to return.",
+        examples=[25],
+    ),
+    offset: int = Query(
+        default=0,
+        ge=0,
+        description="Number of matching incidents to skip.",
+        examples=[0],
+    ),
     use_case: IncidentUseCases = Depends(get_incident_usecases),
 ):
     incidents, total = use_case.list_incidents(

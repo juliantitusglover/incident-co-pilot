@@ -72,10 +72,14 @@ class IncidentListItem(BaseModel):
 class IncidentListResponse(BaseModel):
     """Paginated incident list response."""
 
-    items: list[IncidentListItem]
-    limit: int
-    offset: int
-    total: int
+    items: list[IncidentListItem] = Field(
+        ..., description="Current page of incident summaries."
+    )
+    limit: int = Field(..., description="Maximum number of incidents requested.")
+    offset: int = Field(..., description="Number of matching incidents skipped.")
+    total: int = Field(
+        ..., description="Total number of matching incidents before pagination."
+    )
 
 
 class IncidentRead(IncidentBase):
