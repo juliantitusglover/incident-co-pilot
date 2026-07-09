@@ -1,11 +1,15 @@
-from typing import List
-
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, Query, status
 
 from backend.api.dependencies import get_incident_usecases
 from backend.domain.incidents.enums import Severity, Status
 from backend.schemas.error import ErrorResponse
-from backend.schemas.incident import IncidentCreate, IncidentRead, IncidentListItem, IncidentUpdate
+from backend.schemas.incident import (
+    IncidentCreate,
+    IncidentListItem,
+    IncidentListResponse,
+    IncidentRead,
+    IncidentUpdate,
+)
 from backend.schemas.timeline_event import TimelineEventCreate, TimelineEventRead, TimelineEventUpdate
 from backend.services.errors import NotFoundError, ValidationError
 from backend.services.incidents.commands import CreateIncidentCmd, CreateTimelineEventCmd, UpdateIncidentCmd, UpdateTimelineEventCmd
@@ -28,17 +32,33 @@ SERVICE_VALIDATION_RESPONSE = {
 
 @router.get(
     "",
-    response_model=List[IncidentListItem],
+    response_model=IncidentListResponse,
     summary="List incidents",
     description="List incidents, optionally filtered by status and severity.",
 )
 def get_all_incidents(
     status_filter: Status | None = None,
     severity_filter: Severity | None = None,
+    limit: int = Query(default=50, ge=1, le=100),
+    offset: int = Query(default=0, ge=0),
     use_case: IncidentUseCases = Depends(get_incident_usecases),
 ):
-    incidents = use_case.list_incidents(status=status_filter, severity=severity_filter)
-    return [IncidentListItem.model_validate(incident, from_attributes=True) for incident in incidents]
+    incidents, total = use_case.list_incidents(
+        status=status_filter,
+        severity=severity_filter,
+        limit=limit,
+        offset=offset,
+    )
+    items = [
+        IncidentListItem.model_validate(incident, from_attributes=True)
+        for incident in incidents
+    ]
+    return IncidentListResponse(
+        items=items,
+        limit=limit,
+        offset=offset,
+        total=total,
+    )
 
 @router.get(
     "/{incident_id}",

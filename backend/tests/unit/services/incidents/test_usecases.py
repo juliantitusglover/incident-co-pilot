@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import pytest
 from dataclasses import replace
 from datetime import datetime, timezone
@@ -25,6 +27,23 @@ class FakeIncidentRepo:
         self._next_id = (max(self._incidents.keys()) + 1) if self._incidents else 1
 
     def list(
+        self,
+        *,
+        status: Status | None = None,
+        severity: Severity | None = None,
+        limit: int = 50,
+        offset: int = 0,
+    ) -> list[Incident]:
+        items = self._filter(status=status, severity=severity)
+        items = sorted(items, key=lambda x: (x.created_at, x.id), reverse=True)
+        return items[offset : offset + limit]
+
+    def count(
+        self, *, status: Status | None = None, severity: Severity | None = None
+    ) -> int:
+        return len(self._filter(status=status, severity=severity))
+
+    def _filter(
         self, *, status: Status | None = None, severity: Severity | None = None
     ) -> list[Incident]:
         items = list(self._incidents.values())
@@ -32,7 +51,7 @@ class FakeIncidentRepo:
             items = [i for i in items if i.status == status]
         if severity is not None:
             items = [i for i in items if i.severity == severity]
-        return sorted(items, key=lambda x: x.created_at, reverse=True)
+        return items
 
     def get(self, incident_id: int) -> Incident | None:
         return self._incidents.get(incident_id)
@@ -279,9 +298,10 @@ def test_list_incidents_returns_all_when_no_filters():
 
     with FakeUoW(incidents, events) as uow:
         uc = IncidentUseCases(uow)
-        got = uc.list_incidents()
+        got, total = uc.list_incidents()
 
     assert [i.id for i in got] == [2, 1]
+    assert total == 2
 
 
 def test_list_incidents_passes_status_filter():
@@ -292,9 +312,10 @@ def test_list_incidents_passes_status_filter():
 
     with FakeUoW(incidents, events) as uow:
         uc = IncidentUseCases(uow)
-        got = uc.list_incidents(status=Status.OPEN)
+        got, total = uc.list_incidents(status=Status.OPEN)
 
     assert [i.id for i in got] == [1]
+    assert total == 1
 
 
 def test_list_incidents_passes_severity_filter():
@@ -305,9 +326,35 @@ def test_list_incidents_passes_severity_filter():
 
     with FakeUoW(incidents, events) as uow:
         uc = IncidentUseCases(uow)
-        got = uc.list_incidents(severity=Severity.SEV3)
+        got, total = uc.list_incidents(severity=Severity.SEV3)
 
     assert [i.id for i in got] == [2]
+    assert total == 1
+
+
+def test_list_incidents_applies_limit_offset_after_counting_total():
+    older_time = datetime(2024, 1, 1, tzinfo=timezone.utc)
+    middle_time = datetime(2024, 1, 2, tzinfo=timezone.utc)
+    newer_time = datetime(2024, 1, 3, tzinfo=timezone.utc)
+
+    older = make_incident(
+        incident_id=1, title="Older", created_at=older_time, updated_at=older_time
+    )
+    middle = make_incident(
+        incident_id=2, title="Middle", created_at=middle_time, updated_at=middle_time
+    )
+    newer = make_incident(
+        incident_id=3, title="Newer", created_at=newer_time, updated_at=newer_time
+    )
+    incidents = FakeIncidentRepo([older, middle, newer])
+    events = FakeEventRepo()
+
+    with FakeUoW(incidents, events) as uow:
+        uc = IncidentUseCases(uow)
+        got, total = uc.list_incidents(limit=1, offset=1)
+
+    assert [i.id for i in got] == [2]
+    assert total == 3
 
 
 def test_get_incident_without_events_uses_plain_get():
@@ -536,9 +583,10 @@ def test_list_incidents_commits_on_success():
 
     with FakeUoW(incidents, events) as uow:
         uc = IncidentUseCases(uow)
-        got = uc.list_incidents()
+        got, total = uc.list_incidents()
 
     assert len(got) == 1
+    assert total == 1
     assert uow.committed is True
     assert uow.rolled_back is False
 
@@ -870,9 +918,10 @@ def test_list_incidents_passes_both_filters_together():
 
     with FakeUoW(incidents, events) as uow:
         uc = IncidentUseCases(uow)
-        got = uc.list_incidents(status=Status.OPEN, severity=Severity.SEV1)
+        got, total = uc.list_incidents(status=Status.OPEN, severity=Severity.SEV1)
 
     assert [i.id for i in got] == [1]
+    assert total == 1
 
 
 def test_get_incident_with_events_missing_raises_not_found():

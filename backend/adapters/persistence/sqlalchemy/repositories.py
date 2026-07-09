@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from sqlalchemy import exists, select
+from sqlalchemy import exists, func, select
 from sqlalchemy.orm import Session, selectinload
 
 from backend.db.models.incident import Incident as IncidentModel
@@ -17,19 +17,43 @@ class SqlAlchemyIncidentRepository:
     def __init__(self, session: Session):
         self.session = session
 
-    def list(
-        self, *, status: Status | None = None, severity: Severity | None = None
-    ) -> list[Incident]:
-        stmt = select(IncidentModel)
-
+    def _apply_filters(self, stmt, *, status: Status | None, severity: Severity | None):
         if status:
             stmt = stmt.where(IncidentModel.status == status)
         if severity:
             stmt = stmt.where(IncidentModel.severity == severity)
+        return stmt
 
-        stmt = stmt.order_by(IncidentModel.created_at.desc(), IncidentModel.id.desc())
+    def list(
+        self,
+        *,
+        status: Status | None = None,
+        severity: Severity | None = None,
+        limit: int = 50,
+        offset: int = 0,
+    ) -> list[Incident]:
+        stmt = self._apply_filters(
+            select(IncidentModel),
+            status=status,
+            severity=severity,
+        )
+        stmt = (
+            stmt.order_by(IncidentModel.created_at.desc(), IncidentModel.id.desc())
+            .limit(limit)
+            .offset(offset)
+        )
         models = self.session.execute(stmt).scalars().all()
         return [to_domain_incident(m) for m in models]
+
+    def count(
+        self, *, status: Status | None = None, severity: Severity | None = None
+    ) -> int:
+        stmt = self._apply_filters(
+            select(func.count()).select_from(IncidentModel),
+            status=status,
+            severity=severity,
+        )
+        return int(self.session.scalar(stmt))
 
     def get(self, incident_id: int) -> Incident | None:
         stmt = select(IncidentModel).where(IncidentModel.id == incident_id)

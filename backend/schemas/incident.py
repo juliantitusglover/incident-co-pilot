@@ -68,6 +68,16 @@ class IncidentListItem(BaseModel):
     created_at: datetime = Field(..., description="ISO-8601 timestamp of record creation.")
     updated_at: datetime = Field(..., description="ISO-8601 timestamp of the last modification.")
 
+
+class IncidentListResponse(BaseModel):
+    """Paginated incident list response."""
+
+    items: list[IncidentListItem]
+    limit: int
+    offset: int
+    total: int
+
+
 class IncidentRead(IncidentBase):
     """Full detail view of an incident, including system-generated fields and timeline."""
     id: int = Field(..., description="Unique internal database identifier.")
