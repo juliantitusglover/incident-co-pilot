@@ -418,6 +418,7 @@ The API uses standard FastAPI/OpenAPI error shapes:
 - [Roadmap](ROADMAP.md)
 - [Backlog](docs/BACKLOG.md)
 - [Pagination strategy](docs/PAGINATION_STRATEGY.md)
+- [Timeline event read strategy](docs/TIMELINE_EVENT_READ_STRATEGY.md)
 - [Changelog](CHANGELOG.md)
 - [Release checklist](docs/RELEASE_CHECKLIST.md)
 - [License](LICENSE)

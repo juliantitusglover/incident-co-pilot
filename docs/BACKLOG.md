@@ -23,7 +23,7 @@ These items are candidates for planning around v0.2.0. They are not guaranteed r
 
 ### Timeline Event Usability
 
-- [must-have] Decide whether timeline events need read/list endpoints.
+- [must-have] Decide whether timeline events need read/list endpoints. See [Timeline event read strategy](TIMELINE_EVENT_READ_STRATEGY.md); implementation is still pending.
 - [should-have] If approved, add list timeline events endpoint.
 - [should-have] If approved, add get timeline event endpoint.
 - [should-have] Add API docs/examples for timeline event reads.
