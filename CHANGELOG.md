@@ -10,6 +10,16 @@ The format is inspired by Keep a Changelog.
 
 ### Added
 
+### Changed
+
+### Fixed
+
+### Security
+
+## 0.2.0 - 2026-07-10
+
+### Added
+
 - Added dedicated timeline event list and read endpoints.
 - Added timeline event read/list strategy documentation for v0.2.0 planning.
 - Added OpenAPI descriptions and examples for incident list pagination.
@@ -21,6 +31,7 @@ The format is inspired by Keep a Changelog.
 
 - Aligned incident detail nested timeline event ordering with the dedicated event list endpoint.
 - GET `/api/v1/incidents` now returns a paginated response envelope instead of a bare array.
+- Made the release checklist target-version oriented for future releases.
 
 ### Fixed
 

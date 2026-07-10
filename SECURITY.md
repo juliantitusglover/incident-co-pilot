@@ -1,13 +1,13 @@
 # Security Policy
 
-Incident Co-Pilot 0.1.x is a lightweight, local/self-hosted incident timeline API. This policy describes how to report security issues and the current security expectations for this early version.
+Incident Co-Pilot 0.2.x is a lightweight, local/self-hosted incident timeline API. This policy describes how to report security issues and the current security expectations for this early version.
 
 ## Supported Versions
 
 Security fixes are considered for:
 
 - `main`
-- `0.1.x`
+- `0.2.x`
 
 There is no backport commitment yet for older versions or release branches.
 
