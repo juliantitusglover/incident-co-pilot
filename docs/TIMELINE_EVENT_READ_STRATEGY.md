@@ -2,16 +2,18 @@
 
 ## Status
 
-- Proposed for v0.2.0 development.
-- Strategy document only.
-- Not implemented yet.
+- Implemented during v0.2.0 development.
+- This document records the strategy that was chosen and implemented.
+- Dedicated timeline event read/list routes are now available.
 
 ## Current Behavior
 
 - Events can be created, updated, and deleted through nested incident routes.
 - Events can be read indirectly through `GET /api/v1/incidents/{incident_id}`.
-- No dedicated event list or single-event read routes exist today.
-- Incident detail includes nested events, but dedicated event ordering should be made explicit.
+- Dedicated event list and single-event read routes are now available:
+  - `GET /api/v1/incidents/{incident_id}/events`
+  - `GET /api/v1/incidents/{incident_id}/events/{event_id}`
+- Incident detail includes nested events, while the dedicated event list route makes ordering explicit.
 
 ## Goals
 
@@ -21,9 +23,9 @@
 - Keep the v0.2.0 change small and easy to test.
 - Avoid adding timeline event pagination before there is evidence it is needed.
 
-## Chosen Strategy
+## Implemented Strategy
 
-- Add dedicated nested read routes in a later implementation PR:
+- Add dedicated nested read routes:
   - `GET /api/v1/incidents/{incident_id}/events`
   - `GET /api/v1/incidents/{incident_id}/events/{event_id}`
 - Keep the routes nested under incidents.
@@ -31,7 +33,7 @@
 - Do not add new event metadata fields.
 - Do not add pagination in the initial implementation.
 
-## Proposed Response Shapes
+## Response Shapes
 
 For list:
 
@@ -90,22 +92,22 @@ For single event:
   - `404 {"detail": "Event not found"}`
 - This preserves scoped nested-resource behavior and avoids leaking cross-incident event existence.
 
-## Implementation Plan
+## Implementation Reference
 
-Later implementation should:
+Implementation included:
 
-- Add API contract tests for list and get event routes.
-- Add or expose usecase `list_events(incident_id)` that validates incident existence.
-- Reuse existing `get_event(incident_id, event_id)` usecase if suitable.
-- Add GET list route returning `list[TimelineEventRead]`.
-- Add GET single route returning `TimelineEventRead`.
-- Add OpenAPI metadata for summaries, descriptions, response schemas, and 404s.
-- Update README examples.
-- Update CHANGELOG.
+- API contract tests for list and get event routes.
+- Usecase `list_events(incident_id)` that validates incident existence.
+- Existing `get_event(incident_id, event_id)` usecase reused for single-event reads.
+- GET list route returning `list[TimelineEventRead]`.
+- GET single route returning `TimelineEventRead`.
+- OpenAPI metadata for summaries, descriptions, response schemas, and 404s.
+- README examples.
+- CHANGELOG entry.
 
-## Test Plan
+## Test Coverage
 
-Implementation should cover:
+Implementation coverage includes:
 
 - List events returns `200` with ordered events.
 - List events for missing incident returns `404 Incident not found`.

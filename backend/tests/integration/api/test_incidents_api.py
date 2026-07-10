@@ -30,11 +30,17 @@ def _create_list_incident(
     return response.json()
 
 
-def _create_event(client_fixture, incident_id):
+def _create_event(
+    client_fixture,
+    incident_id,
+    event_type="update",
+    message="Restarting the primary node.",
+    occurred_at="2026-01-23T12:00:00Z",
+):
     payload = {
-        "event_type": "update",
-        "message": "Restarting the primary node.",
-        "occurred_at": "2026-01-23T12:00:00Z",
+        "event_type": event_type,
+        "message": message,
+        "occurred_at": occurred_at,
     }
 
     response = client_fixture.post(
@@ -603,6 +609,110 @@ def test_create_event_rejects_stripped_empty_message_with_422(client_fixture):
     )
 
     assert response.status_code == 422
+
+
+def test_list_timeline_events_returns_ordered_events(client_fixture):
+    incident_id = _create_incident(client_fixture)
+    first = _create_event(
+        client_fixture,
+        incident_id,
+        message="Investigation started.",
+    )
+    second = _create_event(
+        client_fixture,
+        incident_id,
+        message="Primary node restarted.",
+    )
+
+    response = client_fixture.get(f"/api/v1/incidents/{incident_id}/events")
+
+    assert response.status_code == 200
+    body = response.json()
+    assert isinstance(body, list)
+    assert [event["id"] for event in body] == [second["id"], first["id"]]
+    assert [event["created_at"] for event in body] == [
+        second["created_at"],
+        first["created_at"],
+    ]
+    assert set(body[0]) >= {
+        "id",
+        "incident_id",
+        "message",
+        "created_at",
+        "updated_at",
+    }
+
+
+def test_list_timeline_events_returns_empty_list_for_incident_with_no_events(
+    client_fixture,
+):
+    incident_id = _create_incident(client_fixture)
+
+    response = client_fixture.get(f"/api/v1/incidents/{incident_id}/events")
+
+    assert response.status_code == 200
+    assert response.json() == []
+
+
+def test_list_timeline_events_missing_incident_returns_404(client_fixture):
+    response = client_fixture.get("/api/v1/incidents/999999/events")
+
+    assert response.status_code == 404
+    assert response.json()["detail"] == "Incident not found"
+
+
+def test_get_timeline_event_returns_event(client_fixture):
+    incident_id = _create_incident(client_fixture)
+    event = _create_event(
+        client_fixture,
+        incident_id,
+        event_type="mitigation",
+        message="Primary node restarted.",
+        occurred_at="2026-01-24T15:30:00Z",
+    )
+
+    response = client_fixture.get(
+        f"/api/v1/incidents/{incident_id}/events/{event['id']}"
+    )
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["id"] == event["id"]
+    assert body["incident_id"] == incident_id
+    assert body["event_type"] == "mitigation"
+    assert body["message"] == "Primary node restarted."
+    assert body["occurred_at"] == "2026-01-24T15:30:00Z"
+    assert body["created_at"] == event["created_at"]
+    assert body["updated_at"] == event["updated_at"]
+
+
+def test_get_timeline_event_missing_incident_returns_404(client_fixture):
+    response = client_fixture.get("/api/v1/incidents/999999/events/1")
+
+    assert response.status_code == 404
+    assert response.json()["detail"] == "Incident not found"
+
+
+def test_get_timeline_event_missing_event_returns_404(client_fixture):
+    incident_id = _create_incident(client_fixture)
+
+    response = client_fixture.get(f"/api/v1/incidents/{incident_id}/events/999999")
+
+    assert response.status_code == 404
+    assert response.json()["detail"] == "Event not found"
+
+
+def test_get_timeline_event_for_wrong_incident_returns_404(client_fixture):
+    first_incident_id = _create_incident(client_fixture)
+    second_incident_id = _create_incident(client_fixture)
+    event = _create_event(client_fixture, second_incident_id)
+
+    response = client_fixture.get(
+        f"/api/v1/incidents/{first_incident_id}/events/{event['id']}"
+    )
+
+    assert response.status_code == 404
+    assert response.json()["detail"] == "Event not found"
 
 
 def test_update_event_partial_update_preserves_other_fields(client_fixture):

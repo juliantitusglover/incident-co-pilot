@@ -188,6 +188,41 @@ def create_timeline_event(
     created_event = use_case.create_event(incident_id, cmd)
     return TimelineEventRead.model_validate(created_event, from_attributes=True)
 
+@router.get(
+    "/{incident_id}/events",
+    response_model=list[TimelineEventRead],
+    summary="List timeline events",
+    description=(
+        "List timeline events for an incident. Results are ordered newest first "
+        "by created_at DESC, id DESC."
+    ),
+    responses={404: INCIDENT_NOT_FOUND_RESPONSE},
+)
+def list_timeline_events(
+    incident_id: int,
+    use_case: IncidentUseCases = Depends(get_incident_usecases),
+):
+    events = use_case.list_events(incident_id)
+    return [
+        TimelineEventRead.model_validate(event, from_attributes=True)
+        for event in events
+    ]
+
+@router.get(
+    "/{incident_id}/events/{event_id}",
+    response_model=TimelineEventRead,
+    summary="Get timeline event",
+    description="Get one timeline event scoped to an incident.",
+    responses={404: EVENT_NOT_FOUND_RESPONSE},
+)
+def get_timeline_event(
+    incident_id: int,
+    event_id: int,
+    use_case: IncidentUseCases = Depends(get_incident_usecases),
+):
+    event = use_case.get_event(incident_id, event_id)
+    return TimelineEventRead.model_validate(event, from_attributes=True)
+
 @router.patch(
     "/{incident_id}/events/{event_id}",
     response_model=TimelineEventRead,

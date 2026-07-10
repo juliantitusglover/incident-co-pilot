@@ -127,6 +127,18 @@ EVENT_ID=$(curl -s -X POST http://localhost:8000/api/v1/incidents/$INCIDENT_ID/e
   -d '{"event_type":"update","message":"Restarting the primary node.","occurred_at":"2026-01-23T12:00:00Z"}' | jq -r '.id')
 ```
 
+List timeline events for the incident, newest first:
+
+```bash
+curl http://localhost:8000/api/v1/incidents/$INCIDENT_ID/events
+```
+
+Get one timeline event:
+
+```bash
+curl http://localhost:8000/api/v1/incidents/$INCIDENT_ID/events/$EVENT_ID
+```
+
 View the incident with its events:
 
 ```bash
