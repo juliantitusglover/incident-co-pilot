@@ -106,3 +106,53 @@ def test_incident_list_openapi_documents_pagination_metadata(app_fixture):
     assert set(example) == {"items", "limit", "offset", "total"}
     assert example["items"][0]["status"] == "investigating"
     assert example["items"][0]["severity"] == "sev1"
+
+
+def test_timeline_event_read_routes_openapi_metadata(app_fixture):
+    openapi = app_fixture.openapi()
+    list_operation = openapi["paths"]["/api/v1/incidents/{incident_id}/events"][
+        "get"
+    ]
+    get_operation = openapi["paths"][
+        "/api/v1/incidents/{incident_id}/events/{event_id}"
+    ]["get"]
+
+    list_schema = _response_schema(
+        openapi,
+        "/api/v1/incidents/{incident_id}/events",
+        "get",
+        200,
+    )
+    get_schema = _response_schema(
+        openapi,
+        "/api/v1/incidents/{incident_id}/events/{event_id}",
+        "get",
+        200,
+    )
+
+    assert list_operation["summary"] == "List timeline events"
+    assert list_operation["description"]
+    assert get_operation["summary"] == "Get timeline event"
+    assert get_operation["description"]
+
+    assert list_schema["type"] == "array"
+    assert list_schema["items"]["$ref"].endswith("/TimelineEventRead")
+    assert get_schema["$ref"].endswith("/TimelineEventRead")
+
+    assert _response_schema(
+        openapi,
+        "/api/v1/incidents/{incident_id}/events",
+        "get",
+        404,
+    )["$ref"].endswith("/ErrorResponse")
+    assert _response_schema(
+        openapi,
+        "/api/v1/incidents/{incident_id}/events/{event_id}",
+        "get",
+        404,
+    )["$ref"].endswith("/ErrorResponse")
+    assert list_operation["responses"]["404"]["description"] == "Incident not found"
+    assert (
+        get_operation["responses"]["404"]["description"]
+        == "Incident or event not found"
+    )

@@ -105,6 +105,11 @@ class IncidentUseCases:
         if not deleted:
             raise NotFoundError("Incident not found")
 
+    def list_events(self, incident_id: int) -> list[TimelineEvent]:
+        if not self.uow.incidents.exists(incident_id):
+            raise NotFoundError("Incident not found")
+        return self.uow.events.list_incident_events(incident_id)
+
     def get_event(self, incident_id: int, event_id: int) -> TimelineEvent:
         event = self.uow.events.get(incident_id, event_id)
         if event:

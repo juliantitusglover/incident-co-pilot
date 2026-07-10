@@ -10,6 +10,7 @@ The format is inspired by Keep a Changelog.
 
 ### Added
 
+- Added dedicated timeline event list and read endpoints.
 - Added timeline event read/list strategy documentation for v0.2.0 planning.
 - Added OpenAPI descriptions and examples for incident list pagination.
 - Added limit/offset pagination support for incident lists.

@@ -102,7 +102,7 @@ class FakeEventRepo:
 
     def list_incident_events(self, incident_id: int) -> list[TimelineEvent]:
         items = [e for (iid, _), e in self._events.items() if iid == incident_id]
-        return sorted(items, key=lambda x: x.created_at, reverse=True)
+        return sorted(items, key=lambda x: (x.created_at, x.id), reverse=True)
 
     def get(self, incident_id: int, event_id: int) -> TimelineEvent | None:
         return self._events.get((incident_id, event_id))
@@ -276,6 +276,53 @@ def test_get_event_missing_incident_returns_incident_not_found():
         with FakeUoW(incidents, events) as uow:
             uc = IncidentUseCases(uow)
             uc.get_event(123, 1)
+
+    assert str(e.value) == "Incident not found"
+    assert incidents.exists_calls == 1
+    assert uow.committed is False
+    assert uow.rolled_back is True
+
+
+def test_list_events_returns_events_for_existing_incident():
+    created_at = datetime(2024, 1, 1, tzinfo=timezone.utc)
+    older = replace(
+        make_event(incident_id=1, event_id=10),
+        created_at=created_at,
+        updated_at=created_at,
+    )
+    newer_same_timestamp = replace(
+        make_event(incident_id=1, event_id=11),
+        created_at=created_at,
+        updated_at=created_at,
+    )
+    other_incident_event = replace(
+        make_event(incident_id=2, event_id=12),
+        created_at=created_at,
+        updated_at=created_at,
+    )
+
+    incidents = FakeIncidentRepo([make_incident(incident_id=1)])
+    events = FakeEventRepo([older, newer_same_timestamp, other_incident_event])
+
+    with FakeUoW(incidents, events) as uow:
+        uc = IncidentUseCases(uow)
+        got = uc.list_events(1)
+
+    assert [event.id for event in got] == [11, 10]
+    assert all(event.incident_id == 1 for event in got)
+    assert incidents.exists_calls == 1
+    assert uow.committed is True
+    assert uow.rolled_back is False
+
+
+def test_list_events_missing_incident_raises_not_found():
+    incidents = FakeIncidentRepo([])
+    events = FakeEventRepo([])
+
+    with pytest.raises(NotFoundError) as e:
+        with FakeUoW(incidents, events) as uow:
+            uc = IncidentUseCases(uow)
+            uc.list_events(123)
 
     assert str(e.value) == "Incident not found"
     assert incidents.exists_calls == 1
