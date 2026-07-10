@@ -89,7 +89,10 @@ class IncidentRead(IncidentBase):
     updated_at: datetime = Field(..., description="ISO-8601 timestamp of the last modification.")
     events: list[TimelineEventRead] = Field(
         default_factory=list, 
-        description="Chronological list of all events associated with this incident."
+        description=(
+            "Timeline events for this incident, ordered newest-first by "
+            "created_at DESC and id DESC."
+        )
     )
 
 class IncidentUpdate(BaseModel):

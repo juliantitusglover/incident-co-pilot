@@ -354,7 +354,7 @@ I have implemented three composite/ordered indexes. These were chosen because Po
 
     Index Name: ix_timeline_incident_occurred
 
-    Justification: This is the most critical index for the "Incident Detail" view. When a user clicks an incident, we need to fetch all events for that specific ID. Adding occurred_at to the index allows Postgres to retrieve the events already sorted by time (Timeline) without a secondary sort operation.
+    Justification: This supports efficient lookups for the "Incident Detail" view. Public timeline event reads use deterministic newest-first ordering by created_at DESC, id DESC.
 
 2. Incident Dashboard (Newest First)
 

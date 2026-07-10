@@ -13,6 +13,8 @@ Release automation may be added later.
 - [ ] Confirm `CHANGELOG.md` has an entry for the target version.
 
 ```bash
+TARGET_VERSION=0.2.0
+TARGET_TAG=v0.2.0
 git status --short
 ```
 
@@ -81,14 +83,14 @@ docker compose down
 
 ## Release Notes and Tagging
 
-- [ ] Prepare release notes from `CHANGELOG.md`.
-- [ ] Create a git tag only when ready.
+- [ ] Prepare release notes for `$TARGET_TAG` from `CHANGELOG.md`.
+- [ ] Create a git tag for `$TARGET_TAG` only when ready.
 - [ ] Do not tag from a dirty working tree.
 
 Suggested tag format:
 
 ```bash
-git tag v0.1.0
+git tag "$TARGET_TAG"
 ```
 
 ## After Release

@@ -8,6 +8,7 @@ This backlog collects candidate issues for future work. It is a planning aid, no
 - `should-have`: valuable but not release-blocking.
 - `could-have`: useful if capacity allows.
 - `later`: intentionally deferred.
+- `done`: completed during v0.2.0 development.
 
 ## v0.2.0 Candidate Backlog
 
@@ -15,19 +16,19 @@ These items are candidates for planning around v0.2.0. They are not guaranteed r
 
 ### API Usability
 
-- [must-have] Decide and document incident list pagination strategy. See [Pagination strategy](PAGINATION_STRATEGY.md); implementation is still pending.
-- [must-have] Implement incident list pagination.
-- [must-have] Document incident list sort order.
-- [should-have] Review status/severity filter naming and OpenAPI examples.
-- [should-have] Add README examples for filtered incident lists.
+- [done] Decide and document incident list pagination strategy. See [Pagination strategy](PAGINATION_STRATEGY.md).
+- [done] Implement incident list pagination.
+- [done] Document incident list sort order.
+- [done] Add OpenAPI examples for status/severity filters and pagination.
+- [done] Add README examples for paginated incident lists.
 
 ### Timeline Event Usability
 
-- [must-have] Decide whether timeline events need read/list endpoints. See [Timeline event read strategy](TIMELINE_EVENT_READ_STRATEGY.md); implementation is still pending.
-- [should-have] If approved, add list timeline events endpoint.
-- [should-have] If approved, add get timeline event endpoint.
-- [should-have] Add API docs/examples for timeline event reads.
-- [could-have] Document timeline event ordering expectations.
+- [done] Decide whether timeline events need read/list endpoints. See [Timeline event read strategy](TIMELINE_EVENT_READ_STRATEGY.md).
+- [done] Add list timeline events endpoint.
+- [done] Add get timeline event endpoint.
+- [done] Add API docs/examples for timeline event reads.
+- [done] Document timeline event ordering expectations.
 
 ### API Contract Clarity
 

@@ -108,6 +108,17 @@ def test_incident_list_openapi_documents_pagination_metadata(app_fixture):
     assert example["items"][0]["severity"] == "sev1"
 
 
+def test_incident_detail_openapi_documents_nested_event_ordering(app_fixture):
+    openapi = app_fixture.openapi()
+    events_description = openapi["components"]["schemas"]["IncidentRead"][
+        "properties"
+    ]["events"]["description"]
+
+    assert "newest-first" in events_description
+    assert "created_at DESC" in events_description
+    assert "id DESC" in events_description
+
+
 def test_timeline_event_read_routes_openapi_metadata(app_fixture):
     openapi = app_fixture.openapi()
     list_operation = openapi["paths"]["/api/v1/incidents/{incident_id}/events"][
