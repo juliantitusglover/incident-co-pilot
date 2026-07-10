@@ -32,18 +32,19 @@ These are candidate areas for v0.2.0 planning, not guaranteed release contents.
 
 ### Incident List Usability
 
-- Choose a pagination strategy.
-- Document the current sort order.
-- Improve filter ergonomics for status and severity.
+- Completed limit/offset pagination with a response envelope.
+- Documented newest-first incident list ordering.
+- Preserved status and severity filtering with pagination.
 
 ### Timeline Event API Usability
 
-- Decide whether dedicated read/list event endpoints are needed.
-- Improve docs and examples around event workflows.
+- Added dedicated timeline event read/list endpoints.
+- Aligned timeline event ordering across dedicated event lists and incident detail.
+- Improved docs and examples around event workflows.
 
 ### API Contract Clarity
 
-- Improve OpenAPI examples.
+- Improved OpenAPI examples for incident list pagination.
 - Add clearer error examples.
 - Add clearer request and response examples.
 
@@ -90,6 +91,6 @@ The following are intentionally out of scope for the current v0.2.0 planning tar
 
 ## Backlog
 
-The future detailed issue breakdown should live in `docs/BACKLOG.md`.
+The detailed issue breakdown lives in `docs/BACKLOG.md`.
 
-That file does not exist yet. When added, it should contain candidate issues grouped by theme, priority labels, and guidance for splitting large items into smaller issues.
+That file contains candidate issues grouped by theme, priority labels, and guidance for splitting large items into smaller issues.
