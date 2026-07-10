@@ -1,6 +1,6 @@
 # Privacy Notes
 
-Incident Co-Pilot 0.1.x is a local/self-hosted incident timeline API. These notes describe what the current app stores and the privacy responsibilities of running it.
+Incident Co-Pilot's current self-hosted version is a local incident timeline API. These notes describe what the current app stores and the privacy responsibilities of running it.
 
 This is not a legal privacy policy.
 
