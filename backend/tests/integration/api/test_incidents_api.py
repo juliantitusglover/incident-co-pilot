@@ -107,6 +107,27 @@ def test_incident_lifecycle_with_events(client_fixture):
     assert client_fixture.get(f"/api/v1/incidents/{incident_id}").status_code == 404
 
 
+def test_get_incident_returns_timeline_events_newest_first(client_fixture):
+    incident_id = _create_incident(client_fixture)
+    first = _create_event(
+        client_fixture,
+        incident_id,
+        message="First nested event.",
+    )
+    second = _create_event(
+        client_fixture,
+        incident_id,
+        message="Second nested event.",
+    )
+
+    response = client_fixture.get(f"/api/v1/incidents/{incident_id}")
+
+    assert response.status_code == 200
+    events = response.json()["events"]
+    assert len(events) == 2
+    assert [event["id"] for event in events] == [second["id"], first["id"]]
+
+
 def test_get_incident_with_non_existent_id(client_fixture):
     response = client_fixture.get(f"/api/v1/incidents/999")
     assert response.status_code == 404

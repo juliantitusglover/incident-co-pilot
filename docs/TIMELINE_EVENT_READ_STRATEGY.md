@@ -13,7 +13,7 @@
 - Dedicated event list and single-event read routes are now available:
   - `GET /api/v1/incidents/{incident_id}/events`
   - `GET /api/v1/incidents/{incident_id}/events/{event_id}`
-- Incident detail includes nested events, while the dedicated event list route makes ordering explicit.
+- Incident detail includes nested events, and their ordering is aligned with the dedicated event list route.
 
 ## Goals
 
@@ -68,6 +68,7 @@ For single event:
 ## Ordering
 
 - Dedicated event list should return events ordered by `created_at DESC, id DESC`.
+- Incident detail nested events use the same `created_at DESC, id DESC` ordering.
 - This matches the current repository ordering.
 - It is deterministic and gives clients newest updates first.
 - If oldest-first timeline display is needed later, that should be a separate explicit API decision.
@@ -115,10 +116,10 @@ Implementation coverage includes:
 - Get event for missing incident returns `404 Incident not found`.
 - Get missing event under existing incident returns `404 Event not found`.
 - Get event belonging to another incident returns `404 Event not found`.
+- Incident detail returns nested events ordered by `created_at DESC, id DESC`.
 - OpenAPI includes both routes, schema refs, and 404 docs.
 
 ## Open Questions
 
 - Should future clients ever need oldest-first ordering?
 - Should event list pagination be added if timelines become large?
-- Should incident detail nested event ordering be aligned explicitly with the dedicated list endpoint?

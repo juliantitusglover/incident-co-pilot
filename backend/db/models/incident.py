@@ -9,6 +9,13 @@ from backend.domain.incidents.enums import Status, Severity
 if TYPE_CHECKING:
     from backend.db.models.timeline_event import TimelineEvent
 
+
+def _timeline_event_order_by():
+    from backend.db.models.timeline_event import TimelineEvent
+
+    return (TimelineEvent.created_at.desc(), TimelineEvent.id.desc())
+
+
 class Incident(Base):
     __tablename__ = "incidents"
 
@@ -28,7 +35,9 @@ class Incident(Base):
     )
 
     events: Mapped[List["TimelineEvent"]] = relationship(
-        back_populates="incident", cascade="all, delete-orphan"
+        back_populates="incident",
+        cascade="all, delete-orphan",
+        order_by=_timeline_event_order_by,
     )
 
     __table_args__ = (

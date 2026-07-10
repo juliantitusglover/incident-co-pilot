@@ -19,6 +19,7 @@ The format is inspired by Keep a Changelog.
 
 ### Changed
 
+- Aligned incident detail nested timeline event ordering with the dedicated event list endpoint.
 - GET `/api/v1/incidents` now returns a paginated response envelope instead of a bare array.
 
 ### Fixed
