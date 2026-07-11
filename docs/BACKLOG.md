@@ -44,11 +44,18 @@ These items are candidates for planning around v0.2.0. They are not guaranteed r
 - [could-have] Add demo/seed data script for local testing.
 - [could-have] Improve Docker image build caching or size if needed.
 
-### Security Posture Planning
+## M8 Candidate Backlog
 
-- [should-have] Write an API access/security strategy note.
-- [should-have] Decide between local-only guidance, reverse-proxy auth guidance, or future API-key auth.
-- [later] Implement API-key auth only after strategy is approved.
+These items are candidates for API access-control work after v0.2.0. They are planning items until implemented.
+
+### Security/API Access
+
+- [done] Add API access strategy documentation. See [API access strategy](API_ACCESS_STRATEGY.md).
+- [should-have] Add `API_AUTH_ENABLED` and `API_KEY` settings.
+- [should-have] Add a `require_api_key` dependency.
+- [should-have] Protect incident and timeline event routes when API auth is enabled.
+- [should-have] Add auth tests for disabled, missing, wrong, and correct API keys.
+- [should-have] Update README, `SECURITY.md`, and OpenAPI docs after implementation.
 
 ## Split-Needed Items
 

@@ -10,6 +10,8 @@ The format is inspired by Keep a Changelog.
 
 ### Added
 
+- Added API access strategy documentation for optional API key authentication.
+
 ### Changed
 
 ### Fixed
