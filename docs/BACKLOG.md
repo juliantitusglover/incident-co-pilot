@@ -53,9 +53,10 @@ These items are candidates for API access-control work after v0.2.0. They are pl
 - [done] Add API access strategy documentation. See [API access strategy](API_ACCESS_STRATEGY.md).
 - [done] Add `API_AUTH_ENABLED` and `API_KEY` settings.
 - [done] Add API auth environment examples.
-- [should-have] Add a `require_api_key` dependency.
+- [done] Add a `require_api_key` dependency.
+- [done] Add unit tests for API key dependency behavior.
 - [should-have] Protect incident and timeline event routes when API auth is enabled. Auth enforcement is still pending.
-- [should-have] Add auth tests for dependency and route behavior.
+- [should-have] Add integration tests for route auth behavior.
 - [should-have] Update README, `SECURITY.md`, and OpenAPI docs after implementation.
 
 ## Split-Needed Items
