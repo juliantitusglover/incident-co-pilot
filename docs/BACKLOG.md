@@ -8,7 +8,7 @@ This backlog collects candidate issues for future work. It is a planning aid, no
 - `should-have`: valuable but not release-blocking.
 - `could-have`: useful if capacity allows.
 - `later`: intentionally deferred.
-- `done`: completed during v0.2.0 development.
+- `done`: completed in the noted milestone or workstream.
 
 ## v0.2.0 Candidate Backlog
 
@@ -46,7 +46,7 @@ These items are candidates for planning around v0.2.0. They are not guaranteed r
 
 ## M8 Candidate Backlog
 
-These items are candidates for API access-control work after v0.2.0. They are planning items until implemented.
+These items track API access-control work after v0.2.0. Completed items are marked `done`; future hardening remains marked `later`.
 
 ### Security/API Access
 

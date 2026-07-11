@@ -3,7 +3,7 @@ from pydantic import BaseModel, Field
 
 class HealthLiveResponse(BaseModel):
     status: str = Field(..., examples=["ok"])
-    version: str = Field(..., examples=["0.1.0"])
+    version: str = Field(..., examples=["0.3.0"])
 
 
 class HealthReadyResponse(BaseModel):

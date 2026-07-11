@@ -2,9 +2,9 @@
 
 This roadmap is directional. It is not a commitment or guarantee, and priorities may change as the project evolves.
 
-## Current Release
+## Current Release Baseline
 
-v0.1.0 shipped the initial local/self-hosted API baseline for Incident Co-Pilot.
+v0.2.0 shipped core API usability improvements for the local/self-hosted API.
 
 Current capabilities include:
 
@@ -12,69 +12,62 @@ Current capabilities include:
 - Incident CRUD API.
 - Timeline event API nested under incidents.
 - Incident detail responses with timeline events.
+- Dedicated timeline event read/list endpoints.
 - Status and severity filters for incident lists.
+- Limit/offset pagination for incident lists.
 - PostgreSQL persistence with Alembic migrations.
 - Health endpoints for liveness and readiness.
 - Docker Compose local runtime.
+- Optional shared API key authentication for incident and timeline event routes.
 - README setup and API examples.
 - Security, privacy, contributing, changelog, and release checklist docs.
 - OpenAPI metadata improvements.
 
-## Near-Term Focus: v0.2.0
+## Near-Term Focus: v0.3.0
 
-The current candidate theme for v0.2.0 is core API usability for the existing incident timeline API.
+The current release-prep theme for v0.3.0 is basic API access control for the existing incident timeline API.
 
-The goal is to improve the API that already shipped before adding large new surfaces such as AI features, a frontend UI, authentication, or third-party integrations. This keeps the next release focused on making the existing local/self-hosted API easier to use, document, and evolve.
+The goal is to add a small self-hosted security boundary before adding larger surfaces such as AI features, a frontend UI, full user accounts, or third-party integrations.
 
-## v0.2.0 Candidate Focus Areas
+## v0.3.0 Focus Areas
 
-These are candidate areas for v0.2.0 planning, not guaranteed release contents.
+These are release-prep focus areas for v0.3.0.
 
-### Incident List Usability
+### API Access Control
 
-- Completed limit/offset pagination with a response envelope.
-- Documented newest-first incident list ordering.
-- Preserved status and severity filtering with pagination.
+- Added optional shared API key authentication.
+- Protected incident and timeline event routes when API auth is enabled.
+- Kept health endpoints and generated API docs public for the first API key implementation.
 
-### Timeline Event API Usability
+### Documentation and Metadata
 
-- Added dedicated timeline event read/list endpoints.
-- Aligned timeline event ordering across dedicated event lists and incident detail.
-- Improved docs and examples around event workflows.
-
-### API Contract Clarity
-
-- Improved OpenAPI examples for incident list pagination.
-- Add clearer error examples.
-- Add clearer request and response examples.
+- Documented API key usage and security expectations.
+- Added OpenAPI security metadata for protected incident routes.
+- Added release checklist coverage for auth-enabled smoke testing.
 
 ### Operational Polish
 
-- Decide how to centralize or document version sources.
-- Identify Docker/runtime hardening opportunities.
-- Follow through on release checklist learnings.
+- Keep version sources aligned during release prep.
+- Keep future hardening items separate from the first API key implementation.
 
-### Security Posture Planning
+## Explicit Non-Goals for v0.3.0
 
-- Decide whether the next step is local-only guidance or future API-key authentication.
-- Avoid full authentication implementation until the strategy is clear.
-
-## Explicit Non-Goals for v0.2.0
-
-The following are intentionally out of scope for the current v0.2.0 planning target:
+The following are intentionally out of scope for the current v0.3.0 release target:
 
 - Hosted service.
 - Frontend UI.
 - Slack, Jira, Zendesk, or PagerDuty integrations.
 - AI summaries or provider calls.
 - Full user model or RBAC.
+- Multiple API keys or automated key rotation.
 - Multi-tenancy.
 - Release automation.
 - Production deployment hardening.
 
 ## Later Candidate Themes
 
-- Authentication or API keys.
+- Multiple API keys or key rotation.
+- Users and RBAC.
 - AI incident summaries.
 - Third-party integrations.
 - Frontend incident dashboard.
