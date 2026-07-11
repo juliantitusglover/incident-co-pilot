@@ -69,6 +69,24 @@ docker compose down
 - [ ] Open http://localhost:8000/docs.
 - [ ] Open http://localhost:8000/redoc.
 - [ ] Run the README curl examples for the incident and timeline event flow.
+- [ ] With default auth disabled, confirm liveness and incident list requests work without `X-API-Key`.
+- [ ] With auth enabled and a disposable test key, confirm health stays public and incident routes require `X-API-Key`.
+
+Start the auth-enabled app from the `backend/` directory:
+
+```bash
+API_AUTH_ENABLED=true API_KEY=test-api-key PYTHONPATH=.. uv run fastapi dev main.py
+```
+
+Then check the expected status codes from another terminal:
+
+```bash
+curl -i http://localhost:8000/health/live
+curl -i http://localhost:8000/api/v1/incidents
+curl -i http://localhost:8000/api/v1/incidents -H 'X-API-Key: test-api-key'
+```
+
+Expected results: liveness returns `200`, incident list without a key returns `401`, and incident list with the test key returns `200`.
 
 ## Documentation Review
 
