@@ -10,18 +10,31 @@ The format is inspired by Keep a Changelog.
 
 ### Added
 
-- Added API access strategy documentation for optional API key authentication.
-- Added API auth configuration settings and environment examples.
-- Added a reusable API key authentication dependency.
-
 ### Changed
-
-- Protected incident and timeline event API routes with optional API key authentication.
-- Documented optional API key authentication usage and security expectations.
 
 ### Fixed
 
 ### Security
+
+## 0.3.0 - 2026-07-11
+
+### Added
+
+- Added API access strategy documentation for optional API key authentication.
+- Added API auth configuration settings and environment examples.
+- Added a reusable API key authentication dependency.
+- Added OpenAPI security metadata for protected incident routes.
+- Added an API auth smoke check to the release checklist.
+
+### Changed
+
+- Documented optional API key authentication usage and security expectations in README, SECURITY, and API access strategy docs.
+
+### Fixed
+
+### Security
+
+- Protected incident and timeline event API routes with optional API key authentication.
 
 ## 0.2.0 - 2026-07-10
 

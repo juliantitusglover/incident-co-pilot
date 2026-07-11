@@ -13,8 +13,8 @@ Release automation may be added later.
 - [ ] Confirm `CHANGELOG.md` has an entry for the target version.
 
 ```bash
-TARGET_VERSION=0.2.0
-TARGET_TAG=v0.2.0
+TARGET_VERSION=0.3.0
+TARGET_TAG=v0.3.0
 git status --short
 ```
 
