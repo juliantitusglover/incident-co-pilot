@@ -12,6 +12,7 @@ The format is inspired by Keep a Changelog.
 
 - Added API access strategy documentation for optional API key authentication.
 - Added API auth configuration settings and environment examples.
+- Added a reusable API key authentication dependency.
 
 ### Changed
 
