@@ -16,6 +16,8 @@ The format is inspired by Keep a Changelog.
 
 ### Changed
 
+- Protected incident and timeline event API routes with optional API key authentication.
+
 ### Fixed
 
 ### Security

@@ -29,6 +29,25 @@ def test_health_openapi_documents_response_schemas(app_fixture):
     assert ready_error_schema["$ref"].endswith("/HealthReadyErrorResponse")
 
 
+def test_openapi_documents_api_key_security_for_incident_routes(app_fixture):
+    openapi = app_fixture.openapi()
+    security_schemes = openapi["components"]["securitySchemes"]
+
+    assert security_schemes["APIKeyHeader"] == {
+        "type": "apiKey",
+        "in": "header",
+        "name": "X-API-Key",
+    }
+    assert openapi["paths"]["/api/v1/incidents"]["get"]["security"] == [
+        {"APIKeyHeader": []}
+    ]
+    assert openapi["paths"]["/api/v1/incidents/{incident_id}/events"]["post"][
+        "security"
+    ] == [{"APIKeyHeader": []}]
+    assert "security" not in openapi["paths"]["/health/live"]["get"]
+    assert "security" not in openapi["paths"]["/health/ready"]["get"]
+
+
 def test_incident_openapi_documents_custom_error_responses(app_fixture):
     openapi = app_fixture.openapi()
 

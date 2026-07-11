@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, Query, status
 
-from backend.api.dependencies import get_incident_usecases
+from backend.api.dependencies import get_incident_usecases, require_api_key
 from backend.domain.incidents.enums import Severity, Status
 from backend.schemas.error import ErrorResponse
 from backend.schemas.incident import (
@@ -15,7 +15,11 @@ from backend.services.errors import NotFoundError, ValidationError
 from backend.services.incidents.commands import CreateIncidentCmd, CreateTimelineEventCmd, UpdateIncidentCmd, UpdateTimelineEventCmd
 from backend.services.incidents.usecases import IncidentUseCases
 
-router = APIRouter(prefix="/incidents", tags=["incidents"])
+router = APIRouter(
+    prefix="/incidents",
+    tags=["incidents"],
+    dependencies=[Depends(require_api_key)],
+)
 
 INCIDENT_NOT_FOUND_RESPONSE = {
     "model": ErrorResponse,
