@@ -12,6 +12,9 @@ class Settings(BaseSettings, case_sensitive=True):
     API_VERSION: str = "0.2.0"
     API_PREFIX: str = "/api/v1"
 
+    API_AUTH_ENABLED: bool = False
+    API_KEY: str = ""
+
     DATABASE_URL: str = "postgresql://postgres:postgres@localhost:5432/incident_db"
 
     CORS_ORIGINS: str = ""
