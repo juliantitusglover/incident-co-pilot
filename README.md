@@ -203,6 +203,24 @@ PYTHONPATH=.. uv run fastapi dev main.py
 - Local non-Docker backend settings are documented in `backend/.env.example`.
 - Local `.env` files are not committed.
 
+## API authentication
+
+API key authentication is disabled by default for local development. To enable it, set:
+
+```dotenv
+API_AUTH_ENABLED=true
+API_KEY=replace-with-a-long-random-secret
+```
+
+When enabled, all `/api/v1/incidents` requests, including nested timeline event routes, must include the configured key:
+
+```bash
+curl http://localhost:8000/api/v1/incidents \
+  -H 'X-API-Key: replace-with-a-long-random-secret'
+```
+
+Write requests need both `Content-Type: application/json` and `X-API-Key` headers. Health endpoints remain public, and `/docs`, `/redoc`, and `/openapi.json` remain public in this release.
+
 ## Tests
 
 The project uses `pytest` with a transactional isolation strategy. 

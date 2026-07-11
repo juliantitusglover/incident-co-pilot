@@ -2,34 +2,35 @@
 
 ## Status
 
-- Proposed for M8 development.
-- Strategy document only.
-- Not implemented yet.
+- Implemented during M8 development.
+- Records the chosen API access-control strategy and implementation reference.
+- Optional API key authentication is available for incident and timeline event API routes.
 
 ## Current Posture
 
-- Incident Co-Pilot is currently a self-hosted unauthenticated API.
-- Business endpoints can read, create, update, and delete incident data if the backend is reachable.
-- Health endpoints and OpenAPI docs are public.
+- Incident Co-Pilot is a self-hosted API with optional shared API key authentication.
+- API key authentication is disabled by default for local development.
+- When API key authentication is enabled, protected business endpoints require `X-API-Key`.
+- Health endpoints and OpenAPI docs remain public.
 - The project does not currently have users, sessions, RBAC, OAuth, or JWT authentication.
-- An empty auth router namespace exists, but it does not protect any route.
 
 ## Risk
 
-- If the backend is exposed beyond a trusted local or private network, anyone who can reach it can access incident data.
+- If the backend is exposed beyond a trusted local or private network with API key authentication disabled, anyone who can reach it can access incident data.
 - Incident data may include operational, customer, or sensitive details.
-- Reverse proxy and network controls help, but they are easy to misconfigure.
+- Shared API key authentication reduces accidental direct exposure risk, but it is not full production identity/security.
+- Reverse proxy and network controls still help and are still recommended for exposed deployments.
 
 ## Chosen Strategy
 
-- Add optional shared API key authentication in a later implementation PR.
+- Use optional shared API key authentication.
 - Use the `X-API-Key` request header.
 - Keep authentication disabled by default for local development.
 - When authentication is enabled, require the configured API key for protected business endpoints.
 - Keep the implementation dependency-free and easy to test.
 - Treat this as basic self-hosted access control, not full production identity or security.
 
-## Proposed Configuration
+## Configuration
 
 ```dotenv
 API_AUTH_ENABLED=false
@@ -40,11 +41,11 @@ Behavior:
 
 - If `API_AUTH_ENABLED=false`, protected routes behave as they do today.
 - If `API_AUTH_ENABLED=true` and `API_KEY` is configured, protected routes require `X-API-Key`.
-- If `API_AUTH_ENABLED=true` but `API_KEY` is empty, startup or requests should fail safely. Confirm the exact failure mode during implementation.
+- If `API_AUTH_ENABLED=true` but `API_KEY` is empty, protected requests fail safely with a server configuration error.
 
 ## Protected Endpoints
 
-All `/api/v1/incidents` routes should require `X-API-Key` when API authentication is enabled:
+All `/api/v1/incidents` routes require `X-API-Key` when API authentication is enabled:
 
 - `GET /api/v1/incidents`
 - `POST /api/v1/incidents`
@@ -59,7 +60,7 @@ All `/api/v1/incidents` routes should require `X-API-Key` when API authenticatio
 
 ## Public Endpoints
 
-These endpoints should remain public in the first API key implementation:
+These endpoints remain public in the first API key implementation:
 
 - `GET /health/live`
 - `GET /health/ready`
@@ -81,22 +82,23 @@ Exposed deployments may still restrict docs endpoints at the reverse proxy.
 - Reverse proxy guidance alone does not protect users who accidentally expose the app directly.
 - A simple in-app API key is a safer baseline for the current self-hosted project stage.
 
-## Implementation Plan
+## Implementation Reference
 
-Later implementation PRs should:
+Implementation included:
 
-- Add `API_AUTH_ENABLED` and `API_KEY` settings.
-- Add environment examples.
-- Add a `require_api_key` dependency.
-- Attach the dependency to the incident router or router include.
-- Add an OpenAPI API key security scheme.
-- Add tests for disabled, missing, wrong, and correct keys.
-- Confirm health endpoints remain public.
-- Update README curl examples and `SECURITY.md`.
+- `API_AUTH_ENABLED` and `API_KEY` settings.
+- Root and backend environment examples.
+- A reusable `require_api_key` dependency.
+- Router-level protection for incident and nested timeline event routes.
+- An OpenAPI API key security scheme for protected incident routes.
+- Unit tests for config and dependency behavior.
+- Integration tests for protected route behavior.
+- OpenAPI metadata tests for protected incident routes and public health routes.
+- README and `SECURITY.md` usage/security documentation.
 
-## Test Plan
+## Test Coverage
 
-Later test coverage should verify:
+Coverage verifies:
 
 - Auth disabled: existing incident tests pass without headers.
 - Auth enabled and missing key: protected endpoints are rejected.
@@ -108,7 +110,6 @@ Later test coverage should verify:
 
 ## Open Questions
 
-- Should `API_AUTH_ENABLED=true` with empty `API_KEY` fail at startup or reject every protected request with a clear server configuration error?
 - Should docs endpoints eventually be disabled or protected for exposed deployments?
 - Should future releases support key rotation or multiple API keys?
 - Should future releases add proper users/RBAC?
