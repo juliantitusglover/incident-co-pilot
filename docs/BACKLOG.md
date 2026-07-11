@@ -55,9 +55,10 @@ These items are candidates for API access-control work after v0.2.0. They are pl
 - [done] Add API auth environment examples.
 - [done] Add a `require_api_key` dependency.
 - [done] Add unit tests for API key dependency behavior.
-- [should-have] Protect incident and timeline event routes when API auth is enabled. Auth enforcement is still pending.
-- [should-have] Add integration tests for route auth behavior.
-- [should-have] Update README, `SECURITY.md`, and OpenAPI docs after implementation.
+- [done] Protect incident and timeline event routes when API auth is enabled.
+- [done] Add integration tests for route auth behavior.
+- [done] Add OpenAPI security metadata coverage for protected incident routes.
+- [should-have] Update README and `SECURITY.md` after implementation. Docs polish is still pending.
 
 ## Split-Needed Items
 
