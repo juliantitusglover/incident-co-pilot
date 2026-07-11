@@ -46,6 +46,23 @@ Users are responsible for deployment security, including:
 - TLS and reverse proxy configuration if deployed beyond local development.
 - Authentication and authorization controls around any exposed instance.
 
+## API Key Authentication
+
+Incident Co-Pilot includes optional shared API key authentication for the incident and timeline event API routes.
+
+This is basic self-hosted access control. It is not user accounts, sessions, RBAC, OAuth, or JWT authentication.
+
+If you enable API key authentication:
+
+- Set `API_AUTH_ENABLED=true`.
+- Set `API_KEY` to a long random secret.
+- Send the key on protected API requests with the `X-API-Key` header.
+- Keep `API_KEY` secret and never commit real `.env` values.
+
+For deployments exposed beyond local development, still use TLS, reverse proxy controls, network restrictions, PostgreSQL hardening, host/container security, and backups.
+
+Key rotation is manual for now: change `API_KEY` in the runtime environment and restart or redeploy the service.
+
 ## Secret Handling
 
 Never commit `.env` files or real API keys.

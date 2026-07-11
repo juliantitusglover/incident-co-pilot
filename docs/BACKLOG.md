@@ -58,7 +58,16 @@ These items are candidates for API access-control work after v0.2.0. They are pl
 - [done] Protect incident and timeline event routes when API auth is enabled.
 - [done] Add integration tests for route auth behavior.
 - [done] Add OpenAPI security metadata coverage for protected incident routes.
-- [should-have] Update README and `SECURITY.md` after implementation. Docs polish is still pending.
+- [done] Update README API auth documentation.
+- [done] Update `SECURITY.md` API auth expectations.
+- [done] Update API access strategy status after implementation.
+
+### Future Security/API Access
+
+- [later] Decide whether docs endpoints should be protected for exposed deployments.
+- [later] Decide whether to support multiple API keys or key rotation workflow.
+- [later] Decide whether to add users/RBAC.
+- [later] Revisit broader production hardening.
 
 ## Split-Needed Items
 
