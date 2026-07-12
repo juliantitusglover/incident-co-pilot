@@ -42,6 +42,20 @@ class TimelineEventRead(TimelineEventBase):
     created_at: datetime = Field(..., description="System timestamp when this record was created.")
     updated_at: datetime = Field(..., description="System timestamp when this record was last updated.")
 
+
+class TimelineEventListResponse(BaseModel):
+    """Paginated timeline event list response."""
+
+    items: list[TimelineEventRead] = Field(
+        ..., description="Current page of timeline events."
+    )
+    limit: int = Field(..., description="Maximum number of timeline events requested.")
+    offset: int = Field(..., description="Number of matching timeline events skipped.")
+    total: int = Field(
+        ..., description="Total number of matching timeline events before pagination."
+    )
+
+
 class TimelineEventUpdate(BaseModel):
     model_config = ConfigDict(
         str_strip_whitespace=True,

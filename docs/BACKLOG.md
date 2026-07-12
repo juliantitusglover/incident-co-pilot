@@ -71,12 +71,12 @@ These items track API access-control work after v0.2.0. Completed items are mark
 
 ## M9 Client-Ready API Contracts
 
-These items track client-readiness API polish for the existing incident and timeline API. Runtime items remain pending until implemented.
+These items track client-readiness API polish for the existing incident and timeline API. Remaining runtime items stay pending until implemented.
 
 ### Client-Readiness API Polish
 
 - [done] Add client-readiness API strategy documentation. See [API client-readiness strategy](API_CLIENT_READINESS_STRATEGY.md).
-- [must-have] Add timeline event list pagination and a response envelope.
+- [done] Add timeline event list pagination and a response envelope.
 - [should-have] Polish OpenAPI auth and error response metadata for protected routes.
 - [should-have] Sync README/API docs after contract changes land.
 

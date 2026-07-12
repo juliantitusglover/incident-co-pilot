@@ -10,7 +10,12 @@ from backend.schemas.incident import (
     IncidentRead,
     IncidentUpdate,
 )
-from backend.schemas.timeline_event import TimelineEventCreate, TimelineEventRead, TimelineEventUpdate
+from backend.schemas.timeline_event import (
+    TimelineEventCreate,
+    TimelineEventListResponse,
+    TimelineEventRead,
+    TimelineEventUpdate,
+)
 from backend.services.errors import NotFoundError, ValidationError
 from backend.services.incidents.commands import CreateIncidentCmd, CreateTimelineEventCmd, UpdateIncidentCmd, UpdateTimelineEventCmd
 from backend.services.incidents.usecases import IncidentUseCases
@@ -194,7 +199,7 @@ def create_timeline_event(
 
 @router.get(
     "/{incident_id}/events",
-    response_model=list[TimelineEventRead],
+    response_model=TimelineEventListResponse,
     summary="List timeline events",
     description=(
         "List timeline events for an incident. Results are ordered newest first "
@@ -204,13 +209,32 @@ def create_timeline_event(
 )
 def list_timeline_events(
     incident_id: int,
+    limit: int = Query(
+        default=50,
+        ge=1,
+        le=100,
+        description="Maximum number of timeline events to return.",
+        examples=[25],
+    ),
+    offset: int = Query(
+        default=0,
+        ge=0,
+        description="Number of matching timeline events to skip.",
+        examples=[0],
+    ),
     use_case: IncidentUseCases = Depends(get_incident_usecases),
 ):
-    events = use_case.list_events(incident_id)
-    return [
+    events, total = use_case.list_events(incident_id, limit=limit, offset=offset)
+    items = [
         TimelineEventRead.model_validate(event, from_attributes=True)
         for event in events
     ]
+    return TimelineEventListResponse(
+        items=items,
+        limit=limit,
+        offset=offset,
+        total=total,
+    )
 
 @router.get(
     "/{incident_id}/events/{event_id}",

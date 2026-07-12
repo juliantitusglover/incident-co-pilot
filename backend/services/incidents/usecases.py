@@ -105,10 +105,18 @@ class IncidentUseCases:
         if not deleted:
             raise NotFoundError("Incident not found")
 
-    def list_events(self, incident_id: int) -> list[TimelineEvent]:
+    def list_events(
+        self, incident_id: int, *, limit: int = 50, offset: int = 0
+    ) -> tuple[list[TimelineEvent], int]:
         if not self.uow.incidents.exists(incident_id):
             raise NotFoundError("Incident not found")
-        return self.uow.events.list_incident_events(incident_id)
+        events = self.uow.events.list_incident_events(
+            incident_id,
+            limit=limit,
+            offset=offset,
+        )
+        total = self.uow.events.count_incident_events(incident_id)
+        return events, total
 
     def get_event(self, incident_id: int, event_id: int) -> TimelineEvent:
         event = self.uow.events.get(incident_id, event_id)

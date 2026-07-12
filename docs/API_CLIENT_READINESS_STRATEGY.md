@@ -3,14 +3,15 @@
 ## Status
 
 - Planning for M9.
-- No runtime behavior is changed by this document.
+- M9-PR2 implemented timeline event list pagination.
+- Remaining M9 client-readiness work is OpenAPI/auth/error metadata polish and README/API docs sync.
 
 ## Problem
 
 - `GET /api/v1/incidents` is already paginated and client-friendly.
 - Incident lists use a response envelope with `items`, `limit`, `offset`, and `total`.
-- `GET /api/v1/incidents/{incident_id}/events` currently returns a bare array and is unbounded.
-- The timeline event list shape creates generated-client, frontend, and integration special cases.
+- `GET /api/v1/incidents/{incident_id}/events` now uses the same envelope style.
+- The timeline event list changed from a bare array to an envelope in M9-PR2.
 - OpenAPI error and auth metadata is useful today, but can be clearer for client consumers.
 
 ## Goals
@@ -21,7 +22,7 @@
 - Improve OpenAPI metadata and examples for protected incident and timeline flows.
 - Improve documented auth and error responses for client consumers.
 
-## Proposed Timeline Event List Contract
+## Implemented Timeline Event List Contract
 
 Endpoint:
 
@@ -52,7 +53,7 @@ Contract details:
 
 ## Compatibility Note
 
-- This changes the timeline event list response from a bare array to an envelope.
+- M9-PR2 changed the timeline event list response from a bare array to an envelope.
 - Because Incident Co-Pilot is still pre-1.0 and has no known public consumers, this is acceptable if documented clearly.
 - Incident detail embedded events remain unchanged for now.
 
@@ -78,7 +79,7 @@ Contract details:
 ## Proposed PR Sequence
 
 - M9-PR1 - Client-readiness API strategy.
-- M9-PR2 - Timeline event list pagination.
+- M9-PR2 - Timeline event list pagination. Done.
 - M9-PR3 - OpenAPI/error metadata polish.
 - M9-PR4 - README/API docs sync.
 - Optional release prep only if the milestone is substantial enough.
