@@ -4,7 +4,7 @@ This roadmap is directional. It is not a commitment or guarantee, and priorities
 
 ## Current Release Baseline
 
-v0.2.0 shipped core API usability improvements for the local/self-hosted API.
+The current self-hosted version includes core API usability improvements from v0.2.0 and API access control from v0.3.0.
 
 Current capabilities include:
 
@@ -23,15 +23,15 @@ Current capabilities include:
 - Security, privacy, contributing, changelog, and release checklist docs.
 - OpenAPI metadata improvements.
 
-## Near-Term Focus: v0.3.0
+## Recent Milestone: v0.3.0
 
-The current release-prep theme for v0.3.0 is basic API access control for the existing incident timeline API.
+v0.3.0 completed basic API access control for the existing incident timeline API.
 
-The goal is to add a small self-hosted security boundary before adding larger surfaces such as AI features, a frontend UI, full user accounts, or third-party integrations.
+It added a small self-hosted security boundary before larger future surfaces such as AI features, a frontend UI, full user accounts, or third-party integrations.
 
-## v0.3.0 Focus Areas
+## v0.3.0 Completed Focus Areas
 
-These are release-prep focus areas for v0.3.0.
+These focus areas were completed for v0.3.0.
 
 ### API Access Control
 
@@ -47,22 +47,49 @@ These are release-prep focus areas for v0.3.0.
 
 ### Operational Polish
 
-- Keep version sources aligned during release prep.
-- Keep future hardening items separate from the first API key implementation.
+- Kept version sources aligned during release prep.
+- Kept future hardening items separate from the first API key implementation.
 
-## Explicit Non-Goals for v0.3.0
+## Near-Term Focus: M9 - Client-Ready API Contracts
 
-The following are intentionally out of scope for the current v0.3.0 release target:
+The next planning theme is client-readiness API polish for the existing incident and timeline API.
+
+The goal is to make the current API easier and safer for generated clients, scripts, and other non-human consumers without adding new product surfaces.
+
+## M9 Focus Areas
+
+These are planning candidates for M9.
+
+### Timeline Event List Pagination
+
+- Add limit/offset pagination to `GET /api/v1/incidents/{incident_id}/events`.
+- Return a response envelope with `items`, `limit`, `offset`, and `total`.
+- Keep ordering as `created_at DESC, id DESC`.
+- Keep incident detail embedded events unchanged for now.
+
+### OpenAPI and Error Metadata
+
+- Add clearer OpenAPI metadata for auth and error responses on protected routes.
+- Add focused examples for timeline event list, read, create, and update flows.
+- Keep generated-schema checks targeted rather than broad snapshots.
+
+## Explicit Non-Goals for M9
+
+The following are intentionally out of scope for the current M9 target:
 
 - Hosted service.
 - Frontend UI.
 - Slack, Jira, Zendesk, or PagerDuty integrations.
 - AI summaries or provider calls.
 - Full user model or RBAC.
+- OAuth or JWT authentication.
 - Multiple API keys or automated key rotation.
 - Multi-tenancy.
-- Release automation.
-- Production deployment hardening.
+- Search.
+- Cursor pagination.
+- Broad refactors.
+- New event metadata.
+- Event date filters unless later justified.
 
 ## Later Candidate Themes
 
