@@ -10,6 +10,8 @@ The format is inspired by Keep a Changelog.
 
 ### Added
 
+- Added a client-readiness API strategy for M9.
+
 ### Changed
 
 ### Fixed
