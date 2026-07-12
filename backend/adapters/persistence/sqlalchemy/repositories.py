@@ -109,7 +109,9 @@ class SqlAlchemyTimelineEventRepository:
     def __init__(self, session: Session):
         self.session = session
 
-    def list_incident_events(self, incident_id: int) -> list[TimelineEvent]:
+    def list_incident_events(
+        self, incident_id: int, *, limit: int = 50, offset: int = 0
+    ) -> list[TimelineEvent]:
         stmt = (
             select(TimelineEventModel)
             .where(
@@ -118,9 +120,17 @@ class SqlAlchemyTimelineEventRepository:
             .order_by(
                 TimelineEventModel.created_at.desc(), TimelineEventModel.id.desc()
             )
+            .limit(limit)
+            .offset(offset)
         )
         models = self.session.execute(stmt).scalars().all()
         return [to_domain_event(model) for model in models]
+
+    def count_incident_events(self, incident_id: int) -> int:
+        stmt = select(func.count()).select_from(TimelineEventModel).where(
+            TimelineEventModel.incident_id == incident_id,
+        )
+        return int(self.session.scalar(stmt))
 
     def get(self, incident_id: int, event_id: int) -> TimelineEvent | None:
         stmt = select(TimelineEventModel).where(

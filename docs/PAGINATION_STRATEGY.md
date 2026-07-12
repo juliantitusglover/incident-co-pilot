@@ -11,6 +11,7 @@
 - The endpoint supports `status_filter` and `severity_filter`.
 - Results are ordered newest first using `created_at DESC` and `id DESC`.
 - Pagination metadata includes `items`, `limit`, `offset`, and `total`.
+- `GET /api/v1/incidents/{incident_id}/events` now follows the same limit/offset envelope pattern for timeline event lists.
 
 ## Goals
 

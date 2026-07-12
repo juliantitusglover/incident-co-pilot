@@ -124,6 +124,7 @@ def test_get_incident_returns_timeline_events_newest_first(client_fixture):
 
     assert response.status_code == 200
     events = response.json()["events"]
+    assert isinstance(events, list)
     assert len(events) == 2
     assert [event["id"] for event in events] == [second["id"], first["id"]]
 
@@ -632,7 +633,7 @@ def test_create_event_rejects_stripped_empty_message_with_422(client_fixture):
     assert response.status_code == 422
 
 
-def test_list_timeline_events_returns_ordered_events(client_fixture):
+def test_list_timeline_events_returns_default_pagination_envelope(client_fixture):
     incident_id = _create_incident(client_fixture)
     first = _create_event(
         client_fixture,
@@ -644,18 +645,33 @@ def test_list_timeline_events_returns_ordered_events(client_fixture):
         incident_id,
         message="Primary node restarted.",
     )
+    third = _create_event(
+        client_fixture,
+        incident_id,
+        message="Customer impact confirmed.",
+    )
 
     response = client_fixture.get(f"/api/v1/incidents/{incident_id}/events")
 
     assert response.status_code == 200
     body = response.json()
-    assert isinstance(body, list)
-    assert [event["id"] for event in body] == [second["id"], first["id"]]
-    assert [event["created_at"] for event in body] == [
+    assert isinstance(body, dict)
+    assert set(body) >= {"items", "limit", "offset", "total"}
+    assert body["limit"] == 50
+    assert body["offset"] == 0
+    assert body["total"] == 3
+    assert len(body["items"]) == 3
+    assert [event["id"] for event in body["items"]] == [
+        third["id"],
+        second["id"],
+        first["id"],
+    ]
+    assert [event["created_at"] for event in body["items"]] == [
+        third["created_at"],
         second["created_at"],
         first["created_at"],
     ]
-    assert set(body[0]) >= {
+    assert set(body["items"][0]) >= {
         "id",
         "incident_id",
         "message",
@@ -664,7 +680,74 @@ def test_list_timeline_events_returns_ordered_events(client_fixture):
     }
 
 
-def test_list_timeline_events_returns_empty_list_for_incident_with_no_events(
+def test_list_timeline_events_supports_limit_and_offset(client_fixture):
+    incident_id = _create_incident(client_fixture)
+    first = _create_event(
+        client_fixture,
+        incident_id,
+        message="Investigation started.",
+    )
+    second = _create_event(
+        client_fixture,
+        incident_id,
+        message="Primary node restarted.",
+    )
+    third = _create_event(
+        client_fixture,
+        incident_id,
+        message="Customer impact confirmed.",
+    )
+
+    response = client_fixture.get(
+        f"/api/v1/incidents/{incident_id}/events",
+        params={"limit": 1, "offset": 1},
+    )
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["limit"] == 1
+    assert body["offset"] == 1
+    assert body["total"] == 3
+    assert len(body["items"]) == 1
+    assert [event["id"] for event in body["items"]] == [second["id"]]
+    assert body["items"][0]["id"] != third["id"]
+    assert body["items"][0]["id"] != first["id"]
+
+
+def test_list_timeline_events_rejects_limit_below_minimum_with_422(client_fixture):
+    incident_id = _create_incident(client_fixture)
+
+    response = client_fixture.get(
+        f"/api/v1/incidents/{incident_id}/events",
+        params={"limit": 0},
+    )
+
+    assert response.status_code == 422
+
+
+def test_list_timeline_events_rejects_limit_above_maximum_with_422(client_fixture):
+    incident_id = _create_incident(client_fixture)
+
+    response = client_fixture.get(
+        f"/api/v1/incidents/{incident_id}/events",
+        params={"limit": 101},
+    )
+
+    assert response.status_code == 422
+
+
+def test_list_timeline_events_rejects_offset_below_minimum_with_422(client_fixture):
+    incident_id = _create_incident(client_fixture)
+
+    response = client_fixture.get(
+        f"/api/v1/incidents/{incident_id}/events",
+        params={"offset": -1},
+    )
+
+    assert response.status_code == 422
+
+
+def test_list_timeline_events_returns_empty_pagination_envelope_for_incident_with_no_events(
     client_fixture,
 ):
     incident_id = _create_incident(client_fixture)
@@ -672,7 +755,12 @@ def test_list_timeline_events_returns_empty_list_for_incident_with_no_events(
     response = client_fixture.get(f"/api/v1/incidents/{incident_id}/events")
 
     assert response.status_code == 200
-    assert response.json() == []
+    assert response.json() == {
+        "items": [],
+        "limit": 50,
+        "offset": 0,
+        "total": 0,
+    }
 
 
 def test_list_timeline_events_missing_incident_returns_404(client_fixture):

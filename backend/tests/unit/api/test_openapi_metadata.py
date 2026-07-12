@@ -165,8 +165,7 @@ def test_timeline_event_read_routes_openapi_metadata(app_fixture):
     assert get_operation["summary"] == "Get timeline event"
     assert get_operation["description"]
 
-    assert list_schema["type"] == "array"
-    assert list_schema["items"]["$ref"].endswith("/TimelineEventRead")
+    assert list_schema["$ref"].endswith("/TimelineEventListResponse")
     assert get_schema["$ref"].endswith("/TimelineEventRead")
 
     assert _response_schema(

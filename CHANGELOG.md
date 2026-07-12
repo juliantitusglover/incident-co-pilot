@@ -14,6 +14,8 @@ The format is inspired by Keep a Changelog.
 
 ### Changed
 
+- Paginated timeline event list responses with an `{ items, limit, offset, total }` envelope.
+
 ### Fixed
 
 ### Security
