@@ -100,9 +100,15 @@ class FakeEventRepo:
             self._events[(e.incident_id, e.id)] = e
         self._next_id = max((e.id for e in (events or [])), default=0) + 1
 
-    def list_incident_events(self, incident_id: int) -> list[TimelineEvent]:
+    def list_incident_events(
+        self, incident_id: int, *, limit: int = 50, offset: int = 0
+    ) -> list[TimelineEvent]:
         items = [e for (iid, _), e in self._events.items() if iid == incident_id]
-        return sorted(items, key=lambda x: (x.created_at, x.id), reverse=True)
+        items = sorted(items, key=lambda x: (x.created_at, x.id), reverse=True)
+        return items[offset : offset + limit]
+
+    def count_incident_events(self, incident_id: int) -> int:
+        return len([e for (iid, _), e in self._events.items() if iid == incident_id])
 
     def get(self, incident_id: int, event_id: int) -> TimelineEvent | None:
         return self._events.get((incident_id, event_id))
@@ -306,13 +312,42 @@ def test_list_events_returns_events_for_existing_incident():
 
     with FakeUoW(incidents, events) as uow:
         uc = IncidentUseCases(uow)
-        got = uc.list_events(1)
+        got, total = uc.list_events(1)
 
     assert [event.id for event in got] == [11, 10]
+    assert total == 2
     assert all(event.incident_id == 1 for event in got)
     assert incidents.exists_calls == 1
     assert uow.committed is True
     assert uow.rolled_back is False
+
+
+def test_list_events_applies_limit_offset_after_counting_total():
+    created_at = datetime(2024, 1, 1, tzinfo=timezone.utc)
+    older = replace(
+        make_event(incident_id=1, event_id=10),
+        created_at=created_at,
+        updated_at=created_at,
+    )
+    middle = replace(
+        make_event(incident_id=1, event_id=11),
+        created_at=created_at,
+        updated_at=created_at,
+    )
+    newer = replace(
+        make_event(incident_id=1, event_id=12),
+        created_at=created_at,
+        updated_at=created_at,
+    )
+    incidents = FakeIncidentRepo([make_incident(incident_id=1)])
+    events = FakeEventRepo([older, middle, newer])
+
+    with FakeUoW(incidents, events) as uow:
+        uc = IncidentUseCases(uow)
+        got, total = uc.list_events(1, limit=1, offset=1)
+
+    assert [event.id for event in got] == [11]
+    assert total == 3
 
 
 def test_list_events_missing_incident_raises_not_found():
