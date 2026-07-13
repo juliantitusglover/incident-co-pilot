@@ -87,7 +87,7 @@ These items track basic self-hosted diagnostics work for running, debugging, and
 ### Operational Diagnostics
 
 - [done] Add operational readiness strategy documentation. See [Operations readiness strategy](OPERATIONS_READINESS_STRATEGY.md).
-- [must-have] Add request ID middleware using `X-Request-ID`.
+- [done] Add request ID middleware using `X-Request-ID`.
 - [must-have] Apply central logging configuration from `LOG_LEVEL`.
 - [should-have] Add safe request and error logging without payloads or secrets.
 - [should-have] Add health/readiness troubleshooting docs.

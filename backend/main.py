@@ -2,6 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from backend.api.exception_handlers import register_exception_handlers
+from backend.api.middleware import RequestIDMiddleware
 from backend.core.config import get_settings, Settings
 from backend.api.routes import auth, health, incidents
 
@@ -23,6 +24,8 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         allow_methods=["*"],
         allow_headers=["*"],
     )
+
+    app.add_middleware(RequestIDMiddleware)
 
     app.include_router(auth.router)
     app.include_router(health.router)

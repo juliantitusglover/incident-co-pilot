@@ -3,7 +3,8 @@
 ## Status
 
 - Planning for M10 - Operational Readiness & Diagnostics.
-- No runtime behavior is changed by this document.
+- M10-PR2 implemented request ID middleware.
+- This document reflects current request ID behavior and pending operational-readiness work.
 
 ## Problem
 
@@ -23,14 +24,14 @@
 - Add operations/runbook documentation for self-hosted operation.
 - Keep logs useful without leaking incident content, API keys, database URLs, request bodies, or secrets.
 
-## Request ID Plan
+## Request ID Current Behavior
 
-- Accept `X-Request-ID` when supplied by the caller.
-- Generate a request ID when the header is missing.
-- Return `X-Request-ID` on every response.
-- Store the request ID on request state or an equivalent per-request context for later logging.
-- Cover successful responses and error responses.
-- Do not change API response bodies in the first request-ID PR unless that is explicitly chosen later.
+- Accepts `X-Request-ID` when supplied by the caller.
+- Preserves non-blank caller-provided request IDs after trimming whitespace.
+- Generates a request ID when `X-Request-ID` is missing, blank, or longer than 128 characters.
+- Returns `X-Request-ID` on API responses, including success responses and error responses.
+- Stores the request ID on `request.state.request_id` for future logging.
+- Keeps API response bodies unchanged.
 
 ## Logging Plan
 
