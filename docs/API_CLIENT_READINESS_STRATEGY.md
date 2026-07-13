@@ -5,7 +5,7 @@
 - Planning for M9.
 - M9-PR2 implemented timeline event list pagination.
 - M9-PR3 implemented OpenAPI/auth/error metadata polish without runtime behavior changes.
-- Remaining M9 client-readiness work is README/API docs sync.
+- M9-PR4 completed README/API docs sync without runtime behavior changes.
 
 ## Problem
 
@@ -83,6 +83,6 @@ Contract details:
 
 - M9-PR1 - Client-readiness API strategy.
 - M9-PR2 - Timeline event list pagination. Done.
-- M9-PR3 - OpenAPI/error metadata polish.
-- M9-PR4 - README/API docs sync.
+- M9-PR3 - OpenAPI/error metadata polish. Done.
+- M9-PR4 - README/API docs sync. Done.
 - Optional release prep only if the milestone is substantial enough.

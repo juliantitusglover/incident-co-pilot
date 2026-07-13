@@ -16,6 +16,7 @@ The format is inspired by Keep a Changelog.
 
 - Paginated timeline event list responses with an `{ items, limit, offset, total }` envelope.
 - Improved OpenAPI metadata for API key auth errors and timeline event pagination.
+- Updated README/API docs for paginated timeline event list responses.
 
 ### Fixed
 
