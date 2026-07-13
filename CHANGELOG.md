@@ -10,6 +10,8 @@ The format is inspired by Keep a Changelog.
 
 ### Added
 
+- Added an operational readiness and diagnostics strategy for M10.
+
 ### Changed
 
 ### Fixed
