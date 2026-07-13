@@ -10,6 +10,16 @@ The format is inspired by Keep a Changelog.
 
 ### Added
 
+### Changed
+
+### Fixed
+
+### Security
+
+## 0.4.0 - 2026-07-13
+
+### Added
+
 - Added a client-readiness API strategy for M9.
 
 ### Changed
