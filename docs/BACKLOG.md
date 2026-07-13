@@ -80,6 +80,20 @@ These items track completed client-readiness API polish for the existing inciden
 - [done] Polish OpenAPI auth and error response metadata for protected routes.
 - [done] Sync README/API docs after contract changes land.
 
+## M10 Operational Readiness & Diagnostics
+
+These items track basic self-hosted diagnostics work for running, debugging, and supporting the existing backend.
+
+### Operational Diagnostics
+
+- [done] Add operational readiness strategy documentation. See [Operations readiness strategy](OPERATIONS_READINESS_STRATEGY.md).
+- [must-have] Add request ID middleware using `X-Request-ID`.
+- [must-have] Apply central logging configuration from `LOG_LEVEL`.
+- [should-have] Add safe request and error logging without payloads or secrets.
+- [should-have] Add health/readiness troubleshooting docs.
+- [should-have] Add operations/runbook docs.
+- [later] Revisit platform deployment guidance, metrics infrastructure, or distributed tracing only after basic diagnostics are in place.
+
 ## Split-Needed Items
 
 These items are intentionally too large and should be split before implementation.

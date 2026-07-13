@@ -56,6 +56,20 @@ v0.4.0 completed M9 client-readiness API polish for the existing incident and ti
 
 It made the current API easier and safer for generated clients, scripts, and other non-human consumers without adding new product surfaces.
 
+## Current Focus: M10 - Operational Readiness & Diagnostics
+
+M10 focuses on making the current self-hosted backend easier to run, debug, and support before larger product surfaces are added.
+
+Planned focus areas include:
+
+- Request correlation with `X-Request-ID`.
+- Central logging configuration using `LOG_LEVEL`.
+- Safe request and error logs that avoid payloads, API keys, database URLs, and incident content.
+- Health/readiness troubleshooting guidance.
+- Operations/runbook documentation for local and self-hosted use.
+
+The first planned implementation PR is request ID middleware. AI features, third-party integrations, frontend work, users/RBAC/OAuth/JWT, cloud deployment work, metrics infrastructure, and distributed tracing services remain future-looking and outside M10.
+
 ## M9 Completed Focus Areas
 
 These focus areas were completed for M9.
