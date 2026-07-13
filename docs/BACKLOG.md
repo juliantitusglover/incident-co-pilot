@@ -78,7 +78,7 @@ These items track client-readiness API polish for the existing incident and time
 - [done] Add client-readiness API strategy documentation. See [API client-readiness strategy](API_CLIENT_READINESS_STRATEGY.md).
 - [done] Add timeline event list pagination and a response envelope.
 - [done] Polish OpenAPI auth and error response metadata for protected routes.
-- [should-have] Sync README/API docs after contract changes land.
+- [done] Sync README/API docs after contract changes land.
 
 ## Split-Needed Items
 

@@ -59,6 +59,8 @@ curl http://localhost:8000/health/ready
 
 Business API routes are versioned under `/api/v1/*`.
 
+Generated OpenAPI docs include API key security metadata for protected incident and timeline routes, the `401` example `{"detail": "Invalid or missing API key"}`, and timeline event list envelope metadata.
+
 ## Try the API
 
 These examples assume the backend is running on `http://localhost:8000`. They use `jq` to capture IDs; if you do not have `jq` installed, copy the `id` values from the JSON responses manually.
@@ -127,10 +129,19 @@ EVENT_ID=$(curl -s -X POST http://localhost:8000/api/v1/incidents/$INCIDENT_ID/e
   -d '{"event_type":"update","message":"Restarting the primary node.","occurred_at":"2026-01-23T12:00:00Z"}' | jq -r '.id')
 ```
 
-List timeline events for the incident, newest first:
+List timeline events for the incident, newest first. Timeline event lists use the same paginated envelope shape as incident lists; use `limit` and `offset` to request a page:
 
 ```bash
-curl http://localhost:8000/api/v1/incidents/$INCIDENT_ID/events
+curl "http://localhost:8000/api/v1/incidents/$INCIDENT_ID/events?limit=25&offset=0"
+```
+
+```json
+{
+  "items": [],
+  "limit": 25,
+  "offset": 0,
+  "total": 0
+}
 ```
 
 Get one timeline event:
@@ -144,6 +155,8 @@ View the incident with its events:
 ```bash
 curl http://localhost:8000/api/v1/incidents/$INCIDENT_ID
 ```
+
+Incident detail still embeds `events` as a plain list. Use the timeline event list endpoint when you need event pagination.
 
 Update the timeline event:
 
