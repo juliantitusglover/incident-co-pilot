@@ -11,6 +11,7 @@ The format is inspired by Keep a Changelog.
 ### Added
 
 - Added an operational readiness and diagnostics strategy for M10.
+- Added request ID middleware that returns `X-Request-ID` on API responses, including unhandled 500 responses.
 
 ### Changed
 
