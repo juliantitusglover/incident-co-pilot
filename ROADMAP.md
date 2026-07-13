@@ -4,7 +4,7 @@ This roadmap is directional. It is not a commitment or guarantee, and priorities
 
 ## Current Release Baseline
 
-The current self-hosted version includes core API usability improvements from v0.2.0 and API access control from v0.3.0.
+The current self-hosted version includes core API usability improvements from v0.2.0, API access control from v0.3.0, and client-readiness API polish from M9.
 
 Current capabilities include:
 
@@ -14,7 +14,7 @@ Current capabilities include:
 - Incident detail responses with timeline events.
 - Dedicated timeline event read/list endpoints.
 - Status and severity filters for incident lists.
-- Limit/offset pagination for incident lists.
+- Limit/offset pagination for incident and timeline event lists.
 - PostgreSQL persistence with Alembic migrations.
 - Health endpoints for liveness and readiness.
 - Docker Compose local runtime.
@@ -50,32 +50,32 @@ These focus areas were completed for v0.3.0.
 - Kept version sources aligned during release prep.
 - Kept future hardening items separate from the first API key implementation.
 
-## Near-Term Focus: M9 - Client-Ready API Contracts
+## Recent Milestone: M9 - Client-Ready API Contracts
 
-The next planning theme is client-readiness API polish for the existing incident and timeline API.
+M9 completed client-readiness API polish for the existing incident and timeline API.
 
-The goal is to make the current API easier and safer for generated clients, scripts, and other non-human consumers without adding new product surfaces.
+It made the current API easier and safer for generated clients, scripts, and other non-human consumers without adding new product surfaces.
 
-## M9 Focus Areas
+## M9 Completed Focus Areas
 
-These are planning candidates for M9.
+These focus areas were completed for M9.
 
 ### Timeline Event List Pagination
 
-- Add limit/offset pagination to `GET /api/v1/incidents/{incident_id}/events`.
-- Return a response envelope with `items`, `limit`, `offset`, and `total`.
-- Keep ordering as `created_at DESC, id DESC`.
-- Keep incident detail embedded events unchanged for now.
+- Added limit/offset pagination to `GET /api/v1/incidents/{incident_id}/events`.
+- Returned a response envelope with `items`, `limit`, `offset`, and `total`.
+- Kept ordering as `created_at DESC, id DESC`.
+- Kept incident detail embedded events as a plain list.
 
 ### OpenAPI and Error Metadata
 
-- Add clearer OpenAPI metadata for auth and error responses on protected routes.
-- Add focused examples for timeline event list, read, create, and update flows.
-- Keep generated-schema checks targeted rather than broad snapshots.
+- Added clearer OpenAPI metadata for auth and error responses on protected routes.
+- Added focused timeline event list envelope metadata and examples.
+- Synced README/API docs for the implemented timeline event list contract.
 
 ## Explicit Non-Goals for M9
 
-The following are intentionally out of scope for the current M9 target:
+The following were intentionally out of scope for M9:
 
 - Hosted service.
 - Frontend UI.

@@ -69,8 +69,26 @@ docker compose down
 - [ ] Open http://localhost:8000/docs.
 - [ ] Open http://localhost:8000/redoc.
 - [ ] Run the README curl examples for the incident and timeline event flow.
+- [ ] Confirm timeline event list pagination returns an envelope.
 - [ ] With default auth disabled, confirm liveness and incident list requests work without `X-API-Key`.
 - [ ] With auth enabled and a disposable test key, confirm health stays public and incident routes require `X-API-Key`.
+
+With default auth disabled, check timeline event list pagination:
+
+```bash
+INCIDENT_ID=$(curl -s -X POST http://localhost:8000/api/v1/incidents \
+  -H 'Content-Type: application/json' \
+  -d '{"title":"Pagination Smoke","description":"Release checklist pagination smoke","status":"open","severity":"sev2"}' | jq -r '.id')
+curl -s -X POST http://localhost:8000/api/v1/incidents/$INCIDENT_ID/events \
+  -H 'Content-Type: application/json' \
+  -d '{"event_type":"update","message":"First pagination smoke event.","occurred_at":"2026-01-23T12:00:00Z"}' >/dev/null
+curl -s -X POST http://localhost:8000/api/v1/incidents/$INCIDENT_ID/events \
+  -H 'Content-Type: application/json' \
+  -d '{"event_type":"update","message":"Second pagination smoke event.","occurred_at":"2026-01-23T12:01:00Z"}' >/dev/null
+curl -i "http://localhost:8000/api/v1/incidents/$INCIDENT_ID/events?limit=1&offset=0"
+```
+
+Expected result: `200` with `items`, `limit`, `offset`, and `total`; `limit` is `1`, `offset` is `0`, and `total` is at least `2`.
 
 Start the auth-enabled app from the `backend/` directory:
 
