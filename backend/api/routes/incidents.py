@@ -38,6 +38,15 @@ SERVICE_VALIDATION_RESPONSE = {
     "model": ErrorResponse,
     "description": "Service validation error",
 }
+API_KEY_AUTH_RESPONSE = {
+    "model": ErrorResponse,
+    "description": "Invalid or missing API key",
+    "content": {
+        "application/json": {
+            "example": {"detail": "Invalid or missing API key"},
+        }
+    },
+}
 INCIDENT_LIST_RESPONSE_EXAMPLE = {
     "items": [
         {
@@ -47,6 +56,22 @@ INCIDENT_LIST_RESPONSE_EXAMPLE = {
             "severity": "sev1",
             "created_at": "2026-06-28T13:45:35.344353+01:00",
             "updated_at": "2026-06-28T13:45:35.344353+01:00",
+        }
+    ],
+    "limit": 50,
+    "offset": 0,
+    "total": 1,
+}
+TIMELINE_EVENT_LIST_RESPONSE_EXAMPLE = {
+    "items": [
+        {
+            "id": 2,
+            "incident_id": 1,
+            "occurred_at": "2026-07-11T12:00:00Z",
+            "event_type": "update",
+            "message": "Investigating database latency.",
+            "created_at": "2026-07-11T12:05:00Z",
+            "updated_at": "2026-07-11T12:05:00Z",
         }
     ],
     "limit": 50,
@@ -71,7 +96,8 @@ INCIDENT_LIST_RESPONSE_EXAMPLE = {
                     "example": INCIDENT_LIST_RESPONSE_EXAMPLE,
                 }
             },
-        }
+        },
+        401: API_KEY_AUTH_RESPONSE,
     },
 )
 def get_all_incidents(
@@ -122,7 +148,10 @@ def get_all_incidents(
     response_model=IncidentRead,
     summary="Get incident",
     description="Get an incident by ID, including timeline events.",
-    responses={404: INCIDENT_NOT_FOUND_RESPONSE},
+    responses={
+        401: API_KEY_AUTH_RESPONSE,
+        404: INCIDENT_NOT_FOUND_RESPONSE,
+    },
 )
 def get_incident(
     incident_id: int,
@@ -137,6 +166,7 @@ def get_incident(
     status_code=status.HTTP_201_CREATED,
     summary="Create incident",
     description="Create a new incident record.",
+    responses={401: API_KEY_AUTH_RESPONSE},
 )
 def create_incident(
     incident: IncidentCreate,
@@ -152,6 +182,7 @@ def create_incident(
     summary="Update incident",
     description="Partially update an incident.",
     responses={
+        401: API_KEY_AUTH_RESPONSE,
         400: SERVICE_VALIDATION_RESPONSE,
         404: INCIDENT_NOT_FOUND_RESPONSE,
     },
@@ -170,7 +201,10 @@ def update_incident(
     status_code=status.HTTP_204_NO_CONTENT,
     summary="Delete incident",
     description="Delete an incident and its timeline events.",
-    responses={404: INCIDENT_NOT_FOUND_RESPONSE},
+    responses={
+        401: API_KEY_AUTH_RESPONSE,
+        404: INCIDENT_NOT_FOUND_RESPONSE,
+    },
 )
 def delete_incident(
     incident_id: int,
@@ -186,7 +220,10 @@ def delete_incident(
     status_code=status.HTTP_201_CREATED,
     summary="Create timeline event",
     description="Add a timeline event to an incident.",
-    responses={404: INCIDENT_NOT_FOUND_RESPONSE},
+    responses={
+        401: API_KEY_AUTH_RESPONSE,
+        404: INCIDENT_NOT_FOUND_RESPONSE,
+    },
 )
 def create_timeline_event(
     incident_id: int,
@@ -202,10 +239,21 @@ def create_timeline_event(
     response_model=TimelineEventListResponse,
     summary="List timeline events",
     description=(
-        "List timeline events for an incident. Results are ordered newest first "
-        "by created_at DESC, id DESC."
+        "List timeline events for an incident in a paginated envelope. Results "
+        "are ordered newest first by created_at DESC, id DESC."
     ),
-    responses={404: INCIDENT_NOT_FOUND_RESPONSE},
+    responses={
+        200: {
+            "description": "Paginated timeline event list response",
+            "content": {
+                "application/json": {
+                    "example": TIMELINE_EVENT_LIST_RESPONSE_EXAMPLE,
+                }
+            },
+        },
+        401: API_KEY_AUTH_RESPONSE,
+        404: INCIDENT_NOT_FOUND_RESPONSE,
+    },
 )
 def list_timeline_events(
     incident_id: int,
@@ -241,7 +289,10 @@ def list_timeline_events(
     response_model=TimelineEventRead,
     summary="Get timeline event",
     description="Get one timeline event scoped to an incident.",
-    responses={404: EVENT_NOT_FOUND_RESPONSE},
+    responses={
+        401: API_KEY_AUTH_RESPONSE,
+        404: EVENT_NOT_FOUND_RESPONSE,
+    },
 )
 def get_timeline_event(
     incident_id: int,
@@ -256,7 +307,10 @@ def get_timeline_event(
     response_model=TimelineEventRead,
     summary="Update timeline event",
     description="Partially update a timeline event for an incident.",
-    responses={404: EVENT_NOT_FOUND_RESPONSE},
+    responses={
+        401: API_KEY_AUTH_RESPONSE,
+        404: EVENT_NOT_FOUND_RESPONSE,
+    },
 )
 def update_timeline_event(
     incident_id: int,
@@ -273,7 +327,10 @@ def update_timeline_event(
     status_code=status.HTTP_204_NO_CONTENT,
     summary="Delete timeline event",
     description="Delete a timeline event from an incident.",
-    responses={404: EVENT_NOT_FOUND_RESPONSE},
+    responses={
+        401: API_KEY_AUTH_RESPONSE,
+        404: EVENT_NOT_FOUND_RESPONSE,
+    },
 )
 def delete_timeline_event(
     incident_id: int,
