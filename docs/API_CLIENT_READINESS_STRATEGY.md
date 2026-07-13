@@ -4,7 +4,8 @@
 
 - Planning for M9.
 - M9-PR2 implemented timeline event list pagination.
-- Remaining M9 client-readiness work is OpenAPI/auth/error metadata polish and README/API docs sync.
+- M9-PR3 implemented OpenAPI/auth/error metadata polish without runtime behavior changes.
+- Remaining M9 client-readiness work is README/API docs sync.
 
 ## Problem
 
@@ -57,12 +58,14 @@ Contract details:
 - Because Incident Co-Pilot is still pre-1.0 and has no known public consumers, this is acceptable if documented clearly.
 - Incident detail embedded events remain unchanged for now.
 
-## Error/OpenAPI Polish
+## Implemented Error/OpenAPI Polish
 
-- Add explicit `401` metadata for protected routes.
-- Keep `404` metadata for missing incidents and events.
-- Add examples for timeline event list, read, create, and update responses where useful.
-- Avoid full OpenAPI snapshots; prefer focused metadata assertions.
+- Added explicit `401` metadata for protected incident and timeline routes.
+- Documented the API key auth error example as `{"detail": "Invalid or missing API key"}`.
+- Kept health routes public in OpenAPI metadata with no `401` response metadata.
+- Added a concrete timeline event list response example for the paginated envelope.
+- Improved the timeline event list description to mention pagination and `created_at DESC, id DESC` ordering.
+- Kept runtime auth behavior and exception handlers unchanged.
 
 ## Out of Scope
 

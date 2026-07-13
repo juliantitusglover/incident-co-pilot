@@ -3,6 +3,11 @@ def _response_schema(openapi: dict, path: str, method: str, status_code: int) ->
     return response["content"]["application/json"]["schema"]
 
 
+def _response_content(openapi: dict, path: str, method: str, status_code: int) -> dict:
+    response = openapi["paths"][path][method]["responses"][str(status_code)]
+    return response["content"]["application/json"]
+
+
 def _parameters_by_name(operation: dict) -> dict:
     return {parameter["name"]: parameter for parameter in operation["parameters"]}
 
@@ -46,6 +51,29 @@ def test_openapi_documents_api_key_security_for_incident_routes(app_fixture):
     ] == [{"APIKeyHeader": []}]
     assert "security" not in openapi["paths"]["/health/live"]["get"]
     assert "security" not in openapi["paths"]["/health/ready"]["get"]
+    assert "401" not in openapi["paths"]["/health/live"]["get"]["responses"]
+    assert "401" not in openapi["paths"]["/health/ready"]["get"]["responses"]
+
+
+def test_openapi_documents_401_for_protected_incident_routes(app_fixture):
+    openapi = app_fixture.openapi()
+    protected_operations = (
+        ("/api/v1/incidents", "get"),
+        ("/api/v1/incidents", "post"),
+        ("/api/v1/incidents/{incident_id}", "get"),
+        ("/api/v1/incidents/{incident_id}/events", "get"),
+        ("/api/v1/incidents/{incident_id}/events/{event_id}", "get"),
+    )
+
+    for path, method in protected_operations:
+        operation = openapi["paths"][path][method]
+        response = operation["responses"]["401"]
+        content = _response_content(openapi, path, method, 401)
+
+        assert operation["security"] == [{"APIKeyHeader": []}]
+        assert response["description"] == "Invalid or missing API key"
+        assert content["schema"]["$ref"].endswith("/ErrorResponse")
+        assert content["example"] == {"detail": "Invalid or missing API key"}
 
 
 def test_incident_openapi_documents_custom_error_responses(app_fixture):
@@ -153,6 +181,13 @@ def test_timeline_event_read_routes_openapi_metadata(app_fixture):
         "get",
         200,
     )
+    list_response_content = _response_content(
+        openapi,
+        "/api/v1/incidents/{incident_id}/events",
+        "get",
+        200,
+    )
+    list_parameters = _parameters_by_name(list_operation)
     get_schema = _response_schema(
         openapi,
         "/api/v1/incidents/{incident_id}/events/{event_id}",
@@ -161,12 +196,34 @@ def test_timeline_event_read_routes_openapi_metadata(app_fixture):
     )
 
     assert list_operation["summary"] == "List timeline events"
-    assert list_operation["description"]
+    assert "paginated envelope" in list_operation["description"]
+    assert "created_at DESC" in list_operation["description"]
+    assert "id DESC" in list_operation["description"]
     assert get_operation["summary"] == "Get timeline event"
     assert get_operation["description"]
 
     assert list_schema["$ref"].endswith("/TimelineEventListResponse")
     assert get_schema["$ref"].endswith("/TimelineEventRead")
+    assert set(list_response_content["example"]) == {
+        "items",
+        "limit",
+        "offset",
+        "total",
+    }
+    assert list_response_content["example"]["items"][0]["message"] == (
+        "Investigating database latency."
+    )
+
+    limit_schema = list_parameters["limit"]["schema"]
+    assert limit_schema["default"] == 50
+    assert limit_schema["minimum"] == 1
+    assert limit_schema["maximum"] == 100
+    assert _parameter_example(list_parameters["limit"]) == 25
+
+    offset_schema = list_parameters["offset"]["schema"]
+    assert offset_schema["default"] == 0
+    assert offset_schema["minimum"] == 0
+    assert _parameter_example(list_parameters["offset"]) == 0
 
     assert _response_schema(
         openapi,
@@ -185,3 +242,18 @@ def test_timeline_event_read_routes_openapi_metadata(app_fixture):
         get_operation["responses"]["404"]["description"]
         == "Incident or event not found"
     )
+
+
+def test_nested_timeline_event_write_routes_preserve_404_metadata(app_fixture):
+    openapi = app_fixture.openapi()
+    event_path = "/api/v1/incidents/{incident_id}/events/{event_id}"
+
+    for method in ("patch", "delete"):
+        operation = openapi["paths"][event_path][method]
+
+        assert _response_schema(openapi, event_path, method, 404)[
+            "$ref"
+        ].endswith("/ErrorResponse")
+        assert operation["responses"]["404"]["description"] == (
+            "Incident or event not found"
+        )
