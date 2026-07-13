@@ -4,7 +4,7 @@ This roadmap is directional. It is not a commitment or guarantee, and priorities
 
 ## Current Release Baseline
 
-The current self-hosted version includes core API usability improvements from v0.2.0, API access control from v0.3.0, and client-readiness API polish from M9.
+The current self-hosted version includes core API usability improvements from v0.2.0, API access control from v0.3.0, and client-readiness API polish from v0.4.0.
 
 Current capabilities include:
 
@@ -50,9 +50,9 @@ These focus areas were completed for v0.3.0.
 - Kept version sources aligned during release prep.
 - Kept future hardening items separate from the first API key implementation.
 
-## Recent Milestone: M9 - Client-Ready API Contracts
+## Recent Milestone: v0.4.0 - Client-Ready API Contracts
 
-M9 completed client-readiness API polish for the existing incident and timeline API.
+v0.4.0 completed M9 client-readiness API polish for the existing incident and timeline API.
 
 It made the current API easier and safer for generated clients, scripts, and other non-human consumers without adding new product surfaces.
 

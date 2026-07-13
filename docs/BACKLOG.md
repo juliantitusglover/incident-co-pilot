@@ -71,7 +71,7 @@ These items track API access-control work after v0.2.0. Completed items are mark
 
 ## M9 Client-Ready API Contracts
 
-These items track client-readiness API polish for the existing incident and timeline API. Remaining runtime items stay pending until implemented.
+These items track completed client-readiness API polish for the existing incident and timeline API.
 
 ### Client-Readiness API Polish
 
