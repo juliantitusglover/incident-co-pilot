@@ -4,14 +4,15 @@
 
 - Planning for M10 - Operational Readiness & Diagnostics.
 - M10-PR2 implemented request ID middleware.
-- This document reflects current request ID behavior and pending operational-readiness work.
+- M10-PR3 implemented central logging configuration and safe request-completion logs.
+- This document reflects current request ID and logging behavior plus pending operational-readiness work.
 
 ## Problem
 
 - The backend is runnable and release-healthy after v0.4.0.
-- Operational diagnostics are still thin.
-- Requests cannot be correlated across responses, logs, and errors.
-- `LOG_LEVEL` is configured but not centrally applied by the application.
+- Operational diagnostics are improving, but troubleshooting guidance is still thin.
+- Requests can now be correlated across responses and request-completion logs.
+- `LOG_LEVEL` is applied centrally to the backend package logger.
 - Health checks exist, but troubleshooting guidance is limited.
 - Better self-hosted debugging should come before larger AI, integration, or frontend surfaces.
 
@@ -33,13 +34,20 @@
 - Stores the request ID on `request.state.request_id` for future logging.
 - Keeps API response bodies unchanged.
 
-## Logging Plan
+## Logging Current Behavior
 
-- Apply `LOG_LEVEL` centrally.
-- Add safe request completion logs with method, path, status, duration, and request ID.
-- Do not log request or response bodies.
-- Do not log API keys, authorization headers, database URLs, incident descriptions, or timeline messages.
-- Keep logging simple and avoid external logging infrastructure.
+- Uses Python standard-library logging.
+- Applies `LOG_LEVEL` centrally to the backend package logger at app creation.
+- Falls back to `INFO` for invalid `LOG_LEVEL` values.
+- Does not force the root logger to `DEBUG`.
+- Does not modify Uvicorn loggers.
+- Emits one safe request-completion log per HTTP request.
+- Request-completion logs include `request_id`, method, path, status code, and duration in milliseconds.
+- Request-completion logs intentionally exclude query strings, request bodies, response bodies, request headers, response headers, API keys, authorization headers, database URLs, incident descriptions, and timeline messages.
+- Request-completion logs cover successful responses, handled errors, auth `401` responses, validation `422` responses, and unhandled `500` responses.
+- Keeps API response bodies unchanged.
+- Keeps logging simple and avoids JSON logging, metrics, tracing, or external logging infrastructure.
+- SQLAlchemy echo behavior remains tied to `DEBUG`; treat `DEBUG=true` as potentially sensitive because SQL logging can expose operational or incident data.
 
 ## Health/Readiness Plan
 
