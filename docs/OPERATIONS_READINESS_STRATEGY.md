@@ -5,15 +5,16 @@
 - Planning for M10 - Operational Readiness & Diagnostics.
 - M10-PR2 implemented request ID middleware.
 - M10-PR3 implemented central logging configuration and safe request-completion logs.
-- This document reflects current request ID and logging behavior plus pending operational-readiness work.
+- M10-PR4 added operations documentation and release-checklist operational diagnostics checks.
+- This document reflects current request ID, logging, health/readiness, and operations documentation behavior.
 
 ## Problem
 
 - The backend is runnable and release-healthy after v0.4.0.
-- Operational diagnostics are improving, but troubleshooting guidance is still thin.
+- Operational diagnostics now include request correlation, request-completion logs, and basic operations guidance.
 - Requests can now be correlated across responses and request-completion logs.
 - `LOG_LEVEL` is applied centrally to the backend package logger.
-- Health checks exist, but troubleshooting guidance is limited.
+- Health checks exist, and basic troubleshooting guidance is documented.
 - Better self-hosted debugging should come before larger AI, integration, or frontend surfaces.
 
 ## Goals
@@ -49,18 +50,18 @@
 - Keeps logging simple and avoids JSON logging, metrics, tracing, or external logging infrastructure.
 - SQLAlchemy echo behavior remains tied to `DEBUG`; treat `DEBUG=true` as potentially sensitive because SQL logging can expose operational or incident data.
 
-## Health/Readiness Plan
+## Health/Readiness Current Behavior
 
 - Keep `/health/live` cheap and database-free.
 - Keep `/health/ready` focused on database connectivity and required table readiness.
-- Document how to interpret readiness failures.
-- Keep the Docker healthcheck on liveness unless there is a deliberate reason to change it.
+- `docs/OPERATIONS.md` documents how to interpret readiness failures.
+- The Docker healthcheck remains on liveness.
 
-## Operations Docs Plan
+## Operations Docs Current Behavior
 
-- Later add `docs/OPERATIONS.md` or a similar runbook.
-- Cover environment variables, startup, migrations, health checks, log level, request IDs, Docker troubleshooting, and safe logging guidance.
-- Warn that debug SQL logging can expose sensitive data.
+- `docs/OPERATIONS.md` covers environment variables, startup, migrations, health checks, log level, request IDs, Docker troubleshooting, and safe logging guidance.
+- `docs/RELEASE_CHECKLIST.md` includes operational diagnostics smoke checks for request IDs, request-completion logs, and readiness after migrations.
+- The operations docs warn that debug SQL logging can expose sensitive data.
 
 ## Out of Scope
 

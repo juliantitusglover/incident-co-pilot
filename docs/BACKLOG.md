@@ -90,8 +90,9 @@ These items track basic self-hosted diagnostics work for running, debugging, and
 - [done] Add request ID middleware using `X-Request-ID`.
 - [done] Apply central logging configuration from `LOG_LEVEL`.
 - [done] Add safe request and error logging without payloads or secrets.
-- [should-have] Add health/readiness troubleshooting docs.
-- [should-have] Add operations/runbook docs.
+- [done] Add health/readiness troubleshooting docs.
+- [done] Add operations/runbook docs.
+- [done] Add release-checklist operational diagnostics checks.
 - [later] Revisit platform deployment guidance, metrics infrastructure, or distributed tracing only after basic diagnostics are in place.
 
 ## Split-Needed Items
