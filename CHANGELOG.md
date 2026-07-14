@@ -14,6 +14,7 @@ The format is inspired by Keep a Changelog.
 - Added request ID middleware that returns `X-Request-ID` on API responses, including unhandled 500 responses.
 - Added central logging configuration using `LOG_LEVEL`.
 - Added safe request-completion logging with request IDs.
+- Added operations documentation and release-checklist diagnostics checks.
 
 ### Changed
 

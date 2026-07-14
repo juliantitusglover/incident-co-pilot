@@ -260,6 +260,7 @@ The `DATABASE_URL` override avoids assuming a project-specific local PostgreSQL 
 - `/health/ready` returns `503` before migrations because the readiness check requires the `incidents` and `timeline_events` tables.
 - If port `8000` is already in use, stop the other process or change the backend port mapping/command for your local run.
 - To reset the local Docker database, run `docker compose down -v` and then start the services and migrations again.
+- For operations and troubleshooting guidance, see [Operations](docs/OPERATIONS.md).
 
 ## Database & Migrations
 ### 1. Initial Setup
@@ -462,6 +463,7 @@ The API uses standard FastAPI/OpenAPI error shapes:
 - [Backlog](docs/BACKLOG.md)
 - [API access strategy](docs/API_ACCESS_STRATEGY.md)
 - [API client-readiness strategy](docs/API_CLIENT_READINESS_STRATEGY.md)
+- [Operations](docs/OPERATIONS.md)
 - [Operations readiness strategy](docs/OPERATIONS_READINESS_STRATEGY.md)
 - [Pagination strategy](docs/PAGINATION_STRATEGY.md)
 - [Timeline event read strategy](docs/TIMELINE_EVENT_READ_STRATEGY.md)

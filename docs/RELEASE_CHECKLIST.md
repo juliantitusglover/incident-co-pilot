@@ -72,6 +72,34 @@ docker compose down
 - [ ] Confirm timeline event list pagination returns an envelope.
 - [ ] With default auth disabled, confirm liveness and incident list requests work without `X-API-Key`.
 - [ ] With auth enabled and a disposable test key, confirm health stays public and incident routes require `X-API-Key`.
+- [ ] Confirm request IDs are returned and caller-provided request IDs are echoed.
+- [ ] Confirm request-completion logs include safe operational fields only.
+- [ ] Confirm readiness passes after migrations.
+
+Check request ID behavior:
+
+```bash
+curl -i http://localhost:8000/health/live
+curl -i -H 'X-Request-ID: release-check' http://localhost:8000/health/live
+```
+
+Expected results: both responses include `X-Request-ID`; the second response echoes `X-Request-ID: release-check`.
+
+Check request logging:
+
+```bash
+curl http://localhost:8000/health/live
+```
+
+Expected result: one request-completion log includes `request_id`, `method`, `path`, `status_code`, and `duration_ms`. Query strings, request bodies, API keys, authorization headers, database URLs, incident descriptions, and timeline messages should not appear in request logs.
+
+Check readiness after migrations:
+
+```bash
+curl -i http://localhost:8000/health/ready
+```
+
+Expected result: readiness returns `200` after migrations. Liveness can pass before readiness when the database or migrations are not ready.
 
 With default auth disabled, check timeline event list pagination:
 
