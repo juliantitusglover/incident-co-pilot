@@ -10,6 +10,16 @@ The format is inspired by Keep a Changelog.
 
 ### Added
 
+### Changed
+
+### Fixed
+
+### Security
+
+## 0.5.0 - 2026-07-15
+
+### Added
+
 - Added an operational readiness and diagnostics strategy for M10.
 - Added request ID middleware that returns `X-Request-ID` on API responses, including unhandled 500 responses.
 - Added central logging configuration using `LOG_LEVEL`.
