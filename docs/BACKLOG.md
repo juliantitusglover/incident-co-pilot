@@ -95,6 +95,22 @@ These items track basic self-hosted diagnostics work for running, debugging, and
 - [done] Add release-checklist operational diagnostics checks.
 - [later] Revisit platform deployment guidance, metrics infrastructure, or distributed tracing only after basic diagnostics are in place.
 
+## M11 Incident Reports & Timeline Export
+
+These items track deterministic, non-AI incident report/export work for the v0.6.0 target release.
+
+### Report/Export Planning
+
+- [must-have] Add incident report/export strategy documentation. See [Incident reports strategy](INCIDENT_REPORTS_STRATEGY.md).
+- [must-have] Add structured report JSON schema and `GET /api/v1/incidents/{incident_id}/report`.
+- [must-have] Preserve timeline ordering as `created_at DESC, id DESC`.
+- [must-have] Cover the no-events report case with empty `timeline_events` and count `0`.
+- [must-have] Verify existing auth and `X-Request-ID` behavior on report routes.
+- [should-have] Add deterministic Markdown export at `GET /api/v1/incidents/{incident_id}/report/markdown`.
+- [should-have] Add OpenAPI examples and docs for report/export responses.
+- [must-have] Complete report/export release review.
+- [must-have] Prepare v0.6.0 release.
+
 ## Split-Needed Items
 
 These items are intentionally too large and should be split before implementation.

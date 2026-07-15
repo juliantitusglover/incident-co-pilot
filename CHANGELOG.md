@@ -10,6 +10,8 @@ The format is inspired by Keep a Changelog.
 
 ### Added
 
+- Added incident report/export strategy for the next deterministic reporting milestone.
+
 ### Changed
 
 ### Fixed
