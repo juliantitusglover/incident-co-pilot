@@ -2,10 +2,12 @@
 
 ## Status
 
-- Planning for M10 - Operational Readiness & Diagnostics.
+- M10 - Operational Readiness & Diagnostics is implemented and under release review.
+- M10-PR1 added the operational readiness strategy.
 - M10-PR2 implemented request ID middleware.
 - M10-PR3 implemented central logging configuration and safe request-completion logs.
 - M10-PR4 added operations documentation and release-checklist operational diagnostics checks.
+- M10-PR5 found no release blockers during operational readiness inspection.
 - This document reflects current request ID, logging, health/readiness, and operations documentation behavior.
 
 ## Problem
@@ -74,10 +76,11 @@
 - Logging payloads, secrets, API keys, database URLs, or full incident content.
 - Broad refactors or logging framework rewrites.
 
-## Proposed PR Sequence
+## Implemented PR Sequence
 
 - M10-PR1 - Operational readiness strategy.
 - M10-PR2 - Request ID middleware.
 - M10-PR3 - Central logging configuration and safe request logs.
 - M10-PR4 - Operations/runbook docs and release-checklist operational checks.
+- M10-PR5 - Operational readiness release review.
 - Optional release prep if the milestone is substantial enough.
