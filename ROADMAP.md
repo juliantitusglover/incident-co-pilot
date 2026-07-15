@@ -4,7 +4,7 @@ This roadmap is directional. It is not a commitment or guarantee, and priorities
 
 ## Current Release Baseline
 
-The current self-hosted version includes core API usability improvements from v0.2.0, API access control from v0.3.0, and client-readiness API polish from v0.4.0.
+The current self-hosted version includes core API usability improvements from v0.2.0, API access control from v0.3.0, client-readiness API polish from v0.4.0, and operational readiness diagnostics prepared for v0.5.0 release.
 
 Current capabilities include:
 
@@ -56,9 +56,9 @@ v0.4.0 completed M9 client-readiness API polish for the existing incident and ti
 
 It made the current API easier and safer for generated clients, scripts, and other non-human consumers without adding new product surfaces.
 
-## Current Focus: M10 - Operational Readiness & Diagnostics
+## Prepared Milestone: v0.5.0 - Operational Readiness & Diagnostics
 
-M10 focuses on making the current self-hosted backend easier to run, debug, and support before larger product surfaces are added.
+M10 prepared the current self-hosted backend to be easier to run, debug, and support before larger product surfaces are added.
 
 Completed focus areas include:
 
@@ -68,7 +68,7 @@ Completed focus areas include:
 - Health/readiness troubleshooting guidance.
 - Operations/runbook documentation for local and self-hosted use.
 
-Request ID middleware, safe request logging, operations docs, and release-checklist diagnostics are in place for M10. AI features, third-party integrations, frontend work, users/RBAC/OAuth/JWT, cloud deployment work, metrics infrastructure, and distributed tracing services remain future-looking and outside M10.
+Request ID middleware, safe request logging, operations docs, and release-checklist diagnostics are in place for the v0.5.0 release-prep milestone. AI features, third-party integrations, frontend work, users/RBAC/OAuth/JWT, cloud deployment work, metrics infrastructure, and distributed tracing services remain future-looking and outside M10.
 
 ## M9 Completed Focus Areas
 

@@ -2,7 +2,7 @@
 
 ## Status
 
-- M10 - Operational Readiness & Diagnostics is implemented and under release review.
+- M10 - Operational Readiness & Diagnostics is implemented and in v0.5.0 release prep.
 - M10-PR1 added the operational readiness strategy.
 - M10-PR2 implemented request ID middleware.
 - M10-PR3 implemented central logging configuration and safe request-completion logs.
@@ -12,7 +12,7 @@
 
 ## Problem
 
-- The backend is runnable and release-healthy after v0.4.0.
+- The backend is runnable and release-healthy for the v0.5.0 release-prep milestone.
 - Operational diagnostics now include request correlation, request-completion logs, and basic operations guidance.
 - Requests can now be correlated across responses and request-completion logs.
 - `LOG_LEVEL` is applied centrally to the backend package logger.
@@ -83,4 +83,4 @@
 - M10-PR3 - Central logging configuration and safe request logs.
 - M10-PR4 - Operations/runbook docs and release-checklist operational checks.
 - M10-PR5 - Operational readiness release review.
-- Optional release prep if the milestone is substantial enough.
+- M10-PR6 - v0.5.0 release prep.
