@@ -2,7 +2,9 @@
 
 ## Status
 
-- Planning for M11.
+- M11-PR2 structured JSON report endpoint is implemented.
+- Markdown export remains planned for M11-PR3.
+- OpenAPI examples and docs remain planned for M11-PR4.
 - Target release: v0.6.0.
 - v0.5.0 operational readiness is complete.
 
@@ -61,9 +63,9 @@ Existing timeline event fields:
 - `created_at`
 - `updated_at`
 
-Timeline ordering should preserve the current API ordering: `created_at DESC, id DESC`.
+Timeline ordering preserves the current API ordering: `created_at DESC, id DESC`.
 
-## Proposed JSON Endpoint
+## Structured JSON Endpoint
 
 Endpoint:
 
@@ -71,15 +73,23 @@ Endpoint:
 GET /api/v1/incidents/{incident_id}/report
 ```
 
-The report endpoint should live under the existing incidents router. It should inherit the existing API key auth behavior used by incident and timeline event routes when `API_AUTH_ENABLED=true`.
+The report endpoint lives under the existing incidents router. It inherits the existing API key auth behavior used by incident and timeline event routes when `API_AUTH_ENABLED=true`.
 
-Request IDs and safe request-completion logging should apply automatically through the existing middleware. No special report-specific logging is needed.
+Request IDs and safe request-completion logging apply automatically through the existing middleware. No special report-specific logging is needed.
 
-The route must be declared before `GET /api/v1/incidents/{incident_id}` so FastAPI does not treat `report` as an `incident_id`.
+Missing incidents use the existing `404` response shape:
 
-## Proposed JSON Response Shape
+```json
+{
+  "detail": "Incident not found"
+}
+```
 
-Approximate response shape:
+The route is declared before `GET /api/v1/incidents/{incident_id}` so FastAPI does not treat `report` as an `incident_id`.
+
+## JSON Response Shape
+
+Implemented response shape:
 
 ```json
 {
@@ -108,6 +118,8 @@ Approximate response shape:
 }
 ```
 
+Incidents with no timeline events return an empty `timeline_events` list and `timeline_event_count` of `0`.
+
 Avoid unsupported fields:
 
 - `resolved_at`
@@ -134,7 +146,7 @@ The media type can be decided during implementation.
 ## M11 PR Sequence
 
 - M11-PR1 - Incident report/export strategy.
-- M11-PR2 - Structured incident report JSON endpoint.
+- M11-PR2 - Structured incident report JSON endpoint. Implemented.
 - M11-PR3 - Markdown report export.
 - M11-PR4 - OpenAPI examples and docs.
 - M11-PR5 - Report/export release review.

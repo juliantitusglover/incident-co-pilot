@@ -7,6 +7,7 @@ from backend.schemas.incident import (
     IncidentCreate,
     IncidentListItem,
     IncidentListResponse,
+    IncidentReportResponse,
     IncidentRead,
     IncidentUpdate,
 )
@@ -141,6 +142,30 @@ def get_all_incidents(
         limit=limit,
         offset=offset,
         total=total,
+    )
+
+@router.get(
+    "/{incident_id}/report",
+    response_model=IncidentReportResponse,
+    summary="Get incident report",
+    description=(
+        "Get a structured incident report with incident fields and timeline "
+        "events ordered by created_at DESC, id DESC."
+    ),
+    responses={
+        401: API_KEY_AUTH_RESPONSE,
+        404: INCIDENT_NOT_FOUND_RESPONSE,
+    },
+)
+def get_incident_report(
+    incident_id: int,
+    use_case: IncidentUseCases = Depends(get_incident_usecases),
+):
+    incident = use_case.get_incident_report(incident_id)
+    return IncidentReportResponse(
+        incident=incident,
+        timeline_events=incident.events,
+        timeline_event_count=len(incident.events),
     )
 
 @router.get(

@@ -59,6 +59,25 @@ def test_domain_404_includes_request_id_without_body_change(client_fixture):
     assert _request_id(response)
 
 
+def test_incident_report_response_includes_request_id(client_fixture):
+    create_response = client_fixture.post(
+        "/api/v1/incidents",
+        json={
+            "title": "Request ID Report",
+            "description": "Incident used for report request ID test",
+            "status": "open",
+            "severity": "sev2",
+        },
+    )
+    assert create_response.status_code == 201
+    incident_id = create_response.json()["id"]
+
+    response = client_fixture.get(f"/api/v1/incidents/{incident_id}/report")
+
+    assert response.status_code == 200
+    assert _request_id(response)
+
+
 def test_auth_401_includes_request_id_without_body_change(
     client_fixture,
     settings_fixture,

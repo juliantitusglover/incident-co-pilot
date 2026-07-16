@@ -5,7 +5,14 @@ from pydantic import ValidationError
 
 from backend.domain.incidents.entities import Incident, TimelineEvent
 from backend.domain.incidents.enums import Severity, Status
-from backend.schemas.incident import IncidentCreate, IncidentRead, IncidentUpdate
+from backend.schemas.incident import (
+    IncidentCreate,
+    IncidentRead,
+    IncidentReportIncident,
+    IncidentReportResponse,
+    IncidentUpdate,
+)
+from backend.schemas.timeline_event import TimelineEventRead
 
 
 def _now() -> datetime:
@@ -184,6 +191,85 @@ def test_incident_read_serializes_nested_timeline_events_from_domain_entity():
     assert model.events[0].incident_id == 1
     assert model.events[0].event_type == "note"
     assert model.events[0].message == "Investigation started"
+
+
+def test_incident_report_incident_excludes_events_from_domain_entity():
+    now = _now()
+    incident = Incident(
+        id=1,
+        title="Database outage",
+        description="Primary unavailable",
+        severity=Severity.SEV1,
+        status=Status.INVESTIGATING,
+        created_at=now,
+        updated_at=now,
+        events=[
+            TimelineEvent(
+                id=10,
+                incident_id=1,
+                occurred_at=now,
+                event_type="note",
+                message="Investigation started",
+                created_at=now,
+                updated_at=now,
+            )
+        ],
+    )
+
+    model = IncidentReportIncident.model_validate(incident)
+
+    assert model.model_dump() == {
+        "id": 1,
+        "title": "Database outage",
+        "description": "Primary unavailable",
+        "status": Status.INVESTIGATING,
+        "severity": Severity.SEV1,
+        "created_at": now,
+        "updated_at": now,
+    }
+    assert "events" not in model.model_dump()
+
+
+def test_incident_report_response_includes_report_fields_and_timeline_events():
+    now = _now()
+    event = TimelineEvent(
+        id=10,
+        incident_id=1,
+        occurred_at=now,
+        event_type="note",
+        message="Investigation started",
+        created_at=now,
+        updated_at=now,
+    )
+    incident = Incident(
+        id=1,
+        title="Database outage",
+        description="Primary unavailable",
+        severity=Severity.SEV1,
+        status=Status.OPEN,
+        created_at=now,
+        updated_at=now,
+        events=[event],
+    )
+
+    model = IncidentReportResponse(
+        incident=incident,
+        timeline_events=incident.events,
+        timeline_event_count=len(incident.events),
+    )
+
+    assert model.incident.id == 1
+    assert model.timeline_order == "created_at_desc_id_desc"
+    assert model.timeline_event_count == 1
+    assert len(model.timeline_events) == 1
+    assert isinstance(model.timeline_events[0], TimelineEventRead)
+    assert model.timeline_events[0].id == 10
+    assert model.timeline_events[0].incident_id == 1
+    assert model.timeline_events[0].occurred_at == now
+    assert model.timeline_events[0].event_type == "note"
+    assert model.timeline_events[0].message == "Investigation started"
+    assert model.timeline_events[0].created_at == now
+    assert model.timeline_events[0].updated_at == now
 
 
 def test_incident_update_strips_whitespace():
