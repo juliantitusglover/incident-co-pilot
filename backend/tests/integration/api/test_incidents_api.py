@@ -129,6 +129,115 @@ def test_get_incident_returns_timeline_events_newest_first(client_fixture):
     assert [event["id"] for event in events] == [second["id"], first["id"]]
 
 
+def test_get_incident_report_returns_structured_report(client_fixture):
+    incident = _create_list_incident(
+        client_fixture,
+        "Database Outage",
+        status="investigating",
+        severity="sev1",
+    )
+    incident_id = incident["id"]
+    first = _create_event(
+        client_fixture,
+        incident_id,
+        message="Investigating database latency.",
+    )
+    second = _create_event(
+        client_fixture,
+        incident_id,
+        message="Restarting the primary node.",
+    )
+
+    response = client_fixture.get(f"/api/v1/incidents/{incident_id}/report")
+
+    assert response.status_code == 200
+    body = response.json()
+    assert set(body) == {
+        "incident",
+        "timeline_events",
+        "timeline_order",
+        "timeline_event_count",
+    }
+    assert body["timeline_order"] == "created_at_desc_id_desc"
+    assert body["timeline_event_count"] == len(body["timeline_events"]) == 2
+
+    report_incident = body["incident"]
+    assert set(report_incident) == {
+        "id",
+        "title",
+        "description",
+        "status",
+        "severity",
+        "created_at",
+        "updated_at",
+    }
+    assert report_incident["id"] == incident_id
+    assert report_incident["title"] == "Database Outage"
+    assert report_incident["description"] == "Database Outage description"
+    assert report_incident["status"] == "investigating"
+    assert report_incident["severity"] == "sev1"
+    assert "events" not in report_incident
+
+    assert [event["id"] for event in body["timeline_events"]] == [
+        second["id"],
+        first["id"],
+    ]
+    assert body["timeline_events"][0]["message"] == "Restarting the primary node."
+
+
+def test_get_incident_report_missing_incident_returns_404(client_fixture):
+    response = client_fixture.get("/api/v1/incidents/999999/report")
+
+    assert response.status_code == 404
+    assert response.json() == {"detail": "Incident not found"}
+
+
+def test_get_incident_report_with_no_events_returns_empty_timeline(client_fixture):
+    incident_id = _create_incident(client_fixture)
+
+    response = client_fixture.get(f"/api/v1/incidents/{incident_id}/report")
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["timeline_events"] == []
+    assert body["timeline_event_count"] == 0
+    assert body["timeline_order"] == "created_at_desc_id_desc"
+
+
+def test_get_incident_report_preserves_timeline_event_order(client_fixture):
+    incident_id = _create_incident(client_fixture)
+    first = _create_event(
+        client_fixture,
+        incident_id,
+        message="Investigation started.",
+    )
+    second = _create_event(
+        client_fixture,
+        incident_id,
+        message="Primary node restarted.",
+    )
+    third = _create_event(
+        client_fixture,
+        incident_id,
+        message="Customer impact confirmed.",
+    )
+
+    response = client_fixture.get(f"/api/v1/incidents/{incident_id}/report")
+
+    assert response.status_code == 200
+    events = response.json()["timeline_events"]
+    assert [event["id"] for event in events] == [
+        third["id"],
+        second["id"],
+        first["id"],
+    ]
+    assert [event["created_at"] for event in events] == [
+        third["created_at"],
+        second["created_at"],
+        first["created_at"],
+    ]
+
+
 def test_get_incident_with_non_existent_id(client_fixture):
     response = client_fixture.get(f"/api/v1/incidents/999")
     assert response.status_code == 404

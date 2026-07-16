@@ -51,6 +51,9 @@ class IncidentUseCases:
             raise NotFoundError("Incident not found")
         return incident
 
+    def get_incident_report(self, incident_id: int) -> Incident:
+        return self.get_incident(incident_id, with_events=True)
+
     def create_incident(self, cmd: CreateIncidentCmd) -> Incident:
         title = cmd.title.strip()
         description = cmd.description.strip()

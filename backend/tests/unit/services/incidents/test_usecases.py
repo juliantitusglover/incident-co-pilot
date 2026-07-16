@@ -24,6 +24,8 @@ class FakeIncidentRepo:
     def __init__(self, incidents: list[Incident] | None = None):
         self._incidents: dict[int, Incident] = {i.id: i for i in (incidents or [])}
         self.exists_calls = 0
+        self.get_calls = 0
+        self.get_with_events_calls = 0
         self._next_id = (max(self._incidents.keys()) + 1) if self._incidents else 1
 
     def list(
@@ -54,9 +56,11 @@ class FakeIncidentRepo:
         return items
 
     def get(self, incident_id: int) -> Incident | None:
+        self.get_calls += 1
         return self._incidents.get(incident_id)
 
     def get_with_events(self, incident_id: int) -> Incident | None:
+        self.get_with_events_calls += 1
         return self._incidents.get(incident_id)
 
     def create(self, incident_data: dict) -> Incident:
@@ -467,6 +471,22 @@ def test_get_incident_with_events_uses_get_with_events():
     assert got.events[0].id == 10
 
 
+def test_get_incident_report_uses_get_with_events():
+    ev = make_event(incident_id=1, event_id=10)
+    inc = make_incident(incident_id=1, events=[ev])
+    incidents = FakeIncidentRepo([inc])
+    events = FakeEventRepo([ev])
+
+    with FakeUoW(incidents, events) as uow:
+        uc = IncidentUseCases(uow)
+        got = uc.get_incident_report(1)
+
+    assert got.id == 1
+    assert [event.id for event in got.events] == [10]
+    assert incidents.get_with_events_calls == 1
+    assert incidents.get_calls == 0
+
+
 def test_get_incident_missing_raises_not_found():
     incidents = FakeIncidentRepo([])
     events = FakeEventRepo()
@@ -477,6 +497,20 @@ def test_get_incident_missing_raises_not_found():
             uc.get_incident(123)
 
     assert str(e.value) == "Incident not found"
+
+
+def test_get_incident_report_missing_raises_not_found():
+    incidents = FakeIncidentRepo([])
+    events = FakeEventRepo()
+
+    with FakeUoW(incidents, events) as uow:
+        uc = IncidentUseCases(uow)
+        with pytest.raises(NotFoundError) as e:
+            uc.get_incident_report(123)
+
+    assert str(e.value) == "Incident not found"
+    assert incidents.get_with_events_calls == 1
+    assert incidents.get_calls == 0
 
 
 def test_create_incident_rejects_empty_title_after_trimming():

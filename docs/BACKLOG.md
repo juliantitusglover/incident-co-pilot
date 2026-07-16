@@ -102,10 +102,10 @@ These items track deterministic, non-AI incident report/export work for the v0.6
 ### Report/Export Planning
 
 - [must-have] Add incident report/export strategy documentation. See [Incident reports strategy](INCIDENT_REPORTS_STRATEGY.md).
-- [must-have] Add structured report JSON schema and `GET /api/v1/incidents/{incident_id}/report`.
-- [must-have] Preserve timeline ordering as `created_at DESC, id DESC`.
-- [must-have] Cover the no-events report case with empty `timeline_events` and count `0`.
-- [must-have] Verify existing auth and `X-Request-ID` behavior on report routes.
+- [done] Add structured report JSON schema and `GET /api/v1/incidents/{incident_id}/report`.
+- [done] Preserve timeline ordering as `created_at DESC, id DESC`.
+- [done] Cover the no-events report case with empty `timeline_events` and count `0`.
+- [done] Verify existing auth and `X-Request-ID` behavior on report routes.
 - [should-have] Add deterministic Markdown export at `GET /api/v1/incidents/{incident_id}/report/markdown`.
 - [should-have] Add OpenAPI examples and docs for report/export responses.
 - [must-have] Complete report/export release review.

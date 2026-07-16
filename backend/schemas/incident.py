@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import Optional
+from typing import Literal, Optional
 from pydantic import BaseModel, ConfigDict, Field
 from backend.domain.incidents.enums import Status, Severity
 
@@ -94,6 +94,30 @@ class IncidentRead(IncidentBase):
             "created_at DESC and id DESC."
         )
     )
+
+
+class IncidentReportIncident(BaseModel):
+    """Incident fields included in a structured report."""
+
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    title: str
+    description: str | None
+    status: Status
+    severity: Severity
+    created_at: datetime
+    updated_at: datetime
+
+
+class IncidentReportResponse(BaseModel):
+    """Structured incident report response."""
+
+    incident: IncidentReportIncident
+    timeline_events: list[TimelineEventRead]
+    timeline_order: Literal["created_at_desc_id_desc"] = "created_at_desc_id_desc"
+    timeline_event_count: int
+
 
 class IncidentUpdate(BaseModel):
     model_config = ConfigDict(
