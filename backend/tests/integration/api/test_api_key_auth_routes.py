@@ -143,6 +143,26 @@ def test_auth_enabled_rejects_missing_key_on_incident_report(
     assert missing_key_response.json()["detail"] == "Invalid or missing API key"
 
 
+def test_auth_enabled_rejects_missing_key_on_incident_report_markdown(
+    client_fixture,
+    auth_enabled,
+):
+    incident_response = client_fixture.post(
+        "/api/v1/incidents",
+        json=_incident_payload(),
+        headers=AUTH_HEADER,
+    )
+    assert incident_response.status_code == 201
+    incident_id = incident_response.json()["id"]
+
+    missing_key_response = client_fixture.get(
+        f"/api/v1/incidents/{incident_id}/report/markdown"
+    )
+
+    assert missing_key_response.status_code == 401
+    assert missing_key_response.json()["detail"] == "Invalid or missing API key"
+
+
 def test_auth_enabled_keeps_liveness_public(client_fixture, auth_enabled):
     response = client_fixture.get("/health/live")
 

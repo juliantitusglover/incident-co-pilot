@@ -3,7 +3,7 @@
 ## Status
 
 - M11-PR2 structured JSON report endpoint is implemented.
-- Markdown export remains planned for M11-PR3.
+- M11-PR3 Markdown export endpoint is implemented.
 - OpenAPI examples and docs remain planned for M11-PR4.
 - Target release: v0.6.0.
 - v0.5.0 operational readiness is complete.
@@ -12,8 +12,7 @@
 
 - Add deterministic, non-AI incident report/export capability.
 - Make incident data easier to review, share, and use after an incident.
-- Start with structured JSON.
-- Add Markdown export in a later PR.
+- Provide structured JSON and Markdown export surfaces.
 
 ## Non-Goals
 
@@ -131,34 +130,49 @@ Avoid unsupported fields:
 - `action_items`
 - generated summaries
 
-## Markdown Export Plan
+## Markdown Export Endpoint
 
-Recommended later endpoint:
+Endpoint:
 
 ```text
 GET /api/v1/incidents/{incident_id}/report/markdown
 ```
 
-A separate endpoint keeps the structured JSON contract clean, keeps Markdown rendering deterministic, and avoids mixing API data with presentation text. Markdown output should not include AI-generated prose.
+The Markdown export endpoint is implemented as a separate endpoint so the structured JSON contract stays clean and presentation text remains deterministic. Markdown output is non-AI and does not include generated summaries, analysis, root-cause inference, PDF export, or unsupported incident fields.
 
-The media type can be decided during implementation.
+The endpoint returns `text/markdown` and reuses the existing report data-loading path. The renderer accepts an already loaded incident, does not query the database, does not sort timeline events, and preserves the loaded timeline event ordering.
+
+Markdown output uses existing incident and timeline fields only. It includes:
+
+- Incident heading and supported incident fields.
+- `timeline_order` as `created_at_desc_id_desc`.
+- `timeline_event_count`.
+- Timeline event sections.
+- `_No timeline events recorded._` when no timeline events exist.
+
+Markdown rendering uses `datetime.isoformat()` for datetimes, enum values such as `sev1` and `investigating`, and minimal Markdown escaping for user-authored `title`, `description`, `event_type`, and `message` fields.
+
+The endpoint lives under the existing incidents router. It inherits existing API key auth behavior, `X-Request-ID` response headers, and safe request-completion logging through the existing middleware.
 
 ## M11 PR Sequence
 
 - M11-PR1 - Incident report/export strategy.
 - M11-PR2 - Structured incident report JSON endpoint. Implemented.
-- M11-PR3 - Markdown report export.
+- M11-PR3 - Markdown report export. Implemented.
 - M11-PR4 - OpenAPI examples and docs.
 - M11-PR5 - Report/export release review.
 - M11-PR6 - Prepare v0.6.0 release.
 
-## Later Implementation Test Plan
+## Current Test Coverage
 
 - Report success returns incident plus timeline events.
 - Missing incident returns `404`.
 - Timeline ordering uses `created_at DESC, id DESC`.
 - Incident with no timeline events returns empty `timeline_events` and count `0`.
+- Markdown export returns `text/markdown`.
+- Markdown export includes the no-events message when no timeline events exist.
+- Markdown export preserves loaded event ordering and escapes user-authored Markdown-sensitive fields.
 - Auth-enabled missing key returns `401`.
 - Response includes `X-Request-ID`.
-- OpenAPI metadata and examples are added after the schema lands.
-- Markdown export tests are added once the endpoint exists.
+- Minimal OpenAPI metadata covers report auth, error responses, and Markdown media type.
+- Richer OpenAPI examples and docs remain planned for M11-PR4.

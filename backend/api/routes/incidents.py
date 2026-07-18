@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, Query, status
+from fastapi import APIRouter, Depends, Query, Response, status
 
 from backend.api.dependencies import get_incident_usecases, require_api_key
 from backend.domain.incidents.enums import Severity, Status
@@ -19,6 +19,7 @@ from backend.schemas.timeline_event import (
 )
 from backend.services.errors import NotFoundError, ValidationError
 from backend.services.incidents.commands import CreateIncidentCmd, CreateTimelineEventCmd, UpdateIncidentCmd, UpdateTimelineEventCmd
+from backend.services.incidents.report_markdown import render_incident_report_markdown
 from backend.services.incidents.usecases import IncidentUseCases
 
 router = APIRouter(
@@ -167,6 +168,35 @@ def get_incident_report(
         timeline_events=incident.events,
         timeline_event_count=len(incident.events),
     )
+
+@router.get(
+    "/{incident_id}/report/markdown",
+    response_class=Response,
+    summary="Get incident report as Markdown",
+    description=(
+        "Get a deterministic Markdown incident report with incident fields and "
+        "timeline events ordered by created_at DESC, id DESC."
+    ),
+    responses={
+        200: {
+            "description": "Markdown incident report",
+            "content": {
+                "text/markdown": {
+                    "schema": {"type": "string"},
+                }
+            },
+        },
+        401: API_KEY_AUTH_RESPONSE,
+        404: INCIDENT_NOT_FOUND_RESPONSE,
+    },
+)
+def get_incident_report_markdown(
+    incident_id: int,
+    use_case: IncidentUseCases = Depends(get_incident_usecases),
+):
+    incident = use_case.get_incident_report(incident_id)
+    markdown = render_incident_report_markdown(incident)
+    return Response(content=markdown, media_type="text/markdown")
 
 @router.get(
     "/{incident_id}",

@@ -238,6 +238,93 @@ def test_get_incident_report_preserves_timeline_event_order(client_fixture):
     ]
 
 
+def test_get_incident_report_markdown_returns_markdown_report(client_fixture):
+    incident = _create_list_incident(
+        client_fixture,
+        "Markdown Report Incident",
+        status="investigating",
+        severity="sev1",
+    )
+    incident_id = incident["id"]
+    event = _create_event(
+        client_fixture,
+        incident_id,
+        event_type="note",
+        message="Investigation started",
+    )
+
+    response = client_fixture.get(
+        f"/api/v1/incidents/{incident_id}/report/markdown"
+    )
+
+    assert response.status_code == 200
+    assert response.headers["content-type"].startswith("text/markdown")
+    body = response.text
+    assert "# Incident Report:" in body
+    assert "## Incident" in body
+    assert "## Timeline" in body
+    assert "Timeline order: created_at_desc_id_desc" in body
+    assert "Timeline event count: 1" in body
+    assert f"### Event {event['id']}" in body
+    assert "- Event type: note" in body
+    assert "Investigation started" in body
+
+
+def test_get_incident_report_markdown_missing_incident_returns_404(client_fixture):
+    response = client_fixture.get("/api/v1/incidents/999999/report/markdown")
+
+    assert response.status_code == 404
+    assert response.json() == {"detail": "Incident not found"}
+
+
+def test_get_incident_report_markdown_with_no_events_returns_no_events_message(
+    client_fixture,
+):
+    incident_id = _create_incident(client_fixture)
+
+    response = client_fixture.get(
+        f"/api/v1/incidents/{incident_id}/report/markdown"
+    )
+
+    assert response.status_code == 200
+    assert "_No timeline events recorded._" in response.text
+    assert "Timeline event count: 0" in response.text
+
+
+def test_get_incident_report_markdown_preserves_timeline_event_order(
+    client_fixture,
+):
+    incident_id = _create_incident(client_fixture)
+    first = _create_event(
+        client_fixture,
+        incident_id,
+        message="Investigation started",
+    )
+    second = _create_event(
+        client_fixture,
+        incident_id,
+        message="Primary node restarted",
+    )
+    third = _create_event(
+        client_fixture,
+        incident_id,
+        message="Customer impact confirmed",
+    )
+
+    response = client_fixture.get(
+        f"/api/v1/incidents/{incident_id}/report/markdown"
+    )
+
+    assert response.status_code == 200
+    body = response.text
+    assert body.index(f"### Event {third['id']}") < body.index(
+        f"### Event {second['id']}"
+    )
+    assert body.index(f"### Event {second['id']}") < body.index(
+        f"### Event {first['id']}"
+    )
+
+
 def test_get_incident_with_non_existent_id(client_fixture):
     response = client_fixture.get(f"/api/v1/incidents/999")
     assert response.status_code == 404

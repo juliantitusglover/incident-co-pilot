@@ -12,6 +12,7 @@ The format is inspired by Keep a Changelog.
 
 - Added incident report/export strategy for the next deterministic reporting milestone.
 - Added a deterministic structured incident report JSON endpoint at `GET /api/v1/incidents/{incident_id}/report`.
+- Added a deterministic Markdown incident report export endpoint at `GET /api/v1/incidents/{incident_id}/report/markdown`.
 
 ### Changed
 
