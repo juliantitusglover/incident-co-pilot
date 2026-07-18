@@ -49,6 +49,9 @@ def test_openapi_documents_api_key_security_for_incident_routes(app_fixture):
     assert openapi["paths"]["/api/v1/incidents/{incident_id}/report"]["get"][
         "security"
     ] == [{"APIKeyHeader": []}]
+    assert openapi["paths"]["/api/v1/incidents/{incident_id}/report/markdown"][
+        "get"
+    ]["security"] == [{"APIKeyHeader": []}]
     assert openapi["paths"]["/api/v1/incidents/{incident_id}/events"]["post"][
         "security"
     ] == [{"APIKeyHeader": []}]
@@ -64,6 +67,7 @@ def test_openapi_documents_401_for_protected_incident_routes(app_fixture):
         ("/api/v1/incidents", "get"),
         ("/api/v1/incidents", "post"),
         ("/api/v1/incidents/{incident_id}/report", "get"),
+        ("/api/v1/incidents/{incident_id}/report/markdown", "get"),
         ("/api/v1/incidents/{incident_id}", "get"),
         ("/api/v1/incidents/{incident_id}/events", "get"),
         ("/api/v1/incidents/{incident_id}/events/{event_id}", "get"),
@@ -87,6 +91,9 @@ def test_incident_openapi_documents_custom_error_responses(app_fixture):
     incident_report = openapi["paths"]["/api/v1/incidents/{incident_id}/report"][
         "get"
     ]
+    incident_report_markdown = openapi["paths"][
+        "/api/v1/incidents/{incident_id}/report/markdown"
+    ]["get"]
     incident_detail = openapi["paths"]["/api/v1/incidents/{incident_id}"]["get"]
     incident_patch = openapi["paths"]["/api/v1/incidents/{incident_id}"]["patch"]
     event_patch = openapi["paths"][
@@ -110,6 +117,19 @@ def test_incident_openapi_documents_custom_error_responses(app_fixture):
         404,
     )["$ref"].endswith("/ErrorResponse")
     assert incident_report["responses"]["404"]["description"] == "Incident not found"
+    markdown_200 = incident_report_markdown["responses"]["200"]
+    markdown_404_schema = _response_schema(
+        openapi,
+        "/api/v1/incidents/{incident_id}/report/markdown",
+        "get",
+        404,
+    )
+    assert markdown_200["content"]["text/markdown"]["schema"] == {"type": "string"}
+    assert markdown_404_schema["$ref"].endswith("/ErrorResponse")
+    assert (
+        incident_report_markdown["responses"]["404"]["description"]
+        == "Incident not found"
+    )
     assert _response_schema(openapi, "/api/v1/incidents/{incident_id}", "get", 404)[
         "$ref"
     ].endswith("/ErrorResponse")
