@@ -159,6 +159,72 @@ def test_incident_openapi_documents_custom_error_responses(app_fixture):
     assert event_delete["responses"]["404"]["description"] == "Incident or event not found"
 
 
+def test_incident_report_openapi_documents_examples_and_media_types(app_fixture):
+    openapi = app_fixture.openapi()
+    report_path = "/api/v1/incidents/{incident_id}/report"
+    markdown_path = "/api/v1/incidents/{incident_id}/report/markdown"
+
+    report_operation = openapi["paths"][report_path]["get"]
+    report_200_content = _response_content(openapi, report_path, "get", 200)
+    report_example = report_200_content["example"]
+    report_description = report_operation["description"].lower()
+
+    assert report_200_content["schema"]["$ref"].endswith("/IncidentReportResponse")
+    assert set(report_example) == {
+        "incident",
+        "timeline_events",
+        "timeline_order",
+        "timeline_event_count",
+    }
+    assert set(report_example["incident"]) == {
+        "id",
+        "title",
+        "description",
+        "status",
+        "severity",
+        "created_at",
+        "updated_at",
+    }
+    assert report_example["timeline_order"] == "created_at_desc_id_desc"
+    assert report_example["timeline_event_count"] == len(
+        report_example["timeline_events"]
+    )
+    assert "deterministic" in report_description
+    assert "non-ai" in report_description
+    assert "generated summary" in report_description
+    assert "timeline_order" in report_description
+    assert "timeline_event_count" in report_description
+    assert _response_schema(openapi, report_path, "get", 401)["$ref"].endswith(
+        "/ErrorResponse"
+    )
+    assert _response_schema(openapi, report_path, "get", 404)["$ref"].endswith(
+        "/ErrorResponse"
+    )
+
+    markdown_operation = openapi["paths"][markdown_path]["get"]
+    markdown_200_content = markdown_operation["responses"]["200"]["content"]
+    markdown_content = markdown_200_content["text/markdown"]
+    markdown_example = markdown_content["example"]
+    markdown_description = markdown_operation["description"].lower()
+
+    assert set(markdown_200_content) == {"text/markdown"}
+    assert markdown_content["schema"] == {"type": "string"}
+    assert "# Incident Report:" in markdown_example
+    assert "Timeline order: created_at_desc_id_desc" in markdown_example
+    assert "Timeline event count:" in markdown_example
+    assert "deterministic" in markdown_description
+    assert "non-ai" in markdown_description
+    assert "generated summary" in markdown_description
+    assert "timeline_order" in markdown_description
+    assert "timeline_event_count" in markdown_description
+    assert _response_schema(openapi, markdown_path, "get", 401)["$ref"].endswith(
+        "/ErrorResponse"
+    )
+    assert _response_schema(openapi, markdown_path, "get", 404)["$ref"].endswith(
+        "/ErrorResponse"
+    )
+
+
 def test_incident_list_openapi_documents_pagination_metadata(app_fixture):
     openapi = app_fixture.openapi()
     operation = openapi["paths"]["/api/v1/incidents"]["get"]

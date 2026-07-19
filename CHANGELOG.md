@@ -16,6 +16,8 @@ The format is inspired by Keep a Changelog.
 
 ### Changed
 
+- Documented incident report JSON and Markdown export endpoints with OpenAPI examples and README usage notes.
+
 ### Fixed
 
 ### Security

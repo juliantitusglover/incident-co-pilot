@@ -80,6 +80,55 @@ TIMELINE_EVENT_LIST_RESPONSE_EXAMPLE = {
     "offset": 0,
     "total": 1,
 }
+INCIDENT_REPORT_RESPONSE_EXAMPLE = {
+    "incident": {
+        "id": 1,
+        "title": "Database Outage",
+        "description": "Production database is unavailable.",
+        "status": "investigating",
+        "severity": "sev1",
+        "created_at": "2026-01-23T12:00:00Z",
+        "updated_at": "2026-01-23T12:05:00Z",
+    },
+    "timeline_events": [
+        {
+            "id": 2,
+            "incident_id": 1,
+            "occurred_at": "2026-01-23T12:01:00Z",
+            "event_type": "update",
+            "message": "Restarting the primary node.",
+            "created_at": "2026-01-23T12:02:00Z",
+            "updated_at": "2026-01-23T12:02:00Z",
+        }
+    ],
+    "timeline_order": "created_at_desc_id_desc",
+    "timeline_event_count": 1,
+}
+INCIDENT_REPORT_MARKDOWN_EXAMPLE = """# Incident Report: Database Outage
+
+## Incident
+
+- ID: 1
+- Severity: sev1
+- Status: investigating
+- Created at: 2026-01-23T12:00:00Z
+- Updated at: 2026-01-23T12:05:00Z
+- Description: Production database is unavailable.
+
+## Timeline
+
+Timeline order: created_at_desc_id_desc
+Timeline event count: 1
+
+### Event 2
+
+- Event type: update
+- Occurred at: 2026-01-23T12:01:00Z
+- Created at: 2026-01-23T12:02:00Z
+- Updated at: 2026-01-23T12:02:00Z
+
+Restarting the primary node.
+"""
 
 @router.get(
     "",
@@ -150,10 +199,20 @@ def get_all_incidents(
     response_model=IncidentReportResponse,
     summary="Get incident report",
     description=(
-        "Get a structured incident report with incident fields and timeline "
-        "events ordered by created_at DESC, id DESC."
+        "Get a deterministic, non-AI structured incident report with incident "
+        "fields and timeline events. The report does not include a generated "
+        "summary. Timeline events are ordered by created_at DESC, then id DESC, "
+        "and the response includes timeline_order and timeline_event_count."
     ),
     responses={
+        200: {
+            "description": "Deterministic structured incident report.",
+            "content": {
+                "application/json": {
+                    "example": INCIDENT_REPORT_RESPONSE_EXAMPLE,
+                }
+            },
+        },
         401: API_KEY_AUTH_RESPONSE,
         404: INCIDENT_NOT_FOUND_RESPONSE,
     },
@@ -174,8 +233,10 @@ def get_incident_report(
     response_class=Response,
     summary="Get incident report as Markdown",
     description=(
-        "Get a deterministic Markdown incident report with incident fields and "
-        "timeline events ordered by created_at DESC, id DESC."
+        "Get a deterministic, non-AI Markdown incident report with incident "
+        "fields and timeline events. The export does not include a generated "
+        "summary. It preserves report timeline ordering and includes "
+        "timeline_order and timeline_event_count."
     ),
     responses={
         200: {
@@ -183,6 +244,7 @@ def get_incident_report(
             "content": {
                 "text/markdown": {
                     "schema": {"type": "string"},
+                    "example": INCIDENT_REPORT_MARKDOWN_EXAMPLE,
                 }
             },
         },
