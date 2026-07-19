@@ -158,6 +158,22 @@ curl http://localhost:8000/api/v1/incidents/$INCIDENT_ID
 
 Incident detail still embeds `events` as a plain list. Use the timeline event list endpoint when you need event pagination.
 
+### Generate incident reports
+
+Get the deterministic JSON report:
+
+```bash
+curl http://localhost:8000/api/v1/incidents/$INCIDENT_ID/report
+```
+
+Get the deterministic Markdown report:
+
+```bash
+curl http://localhost:8000/api/v1/incidents/$INCIDENT_ID/report/markdown
+```
+
+The JSON report contains `incident`, `timeline_events`, `timeline_order`, and `timeline_event_count`. Markdown reports return `text/markdown`. Both report formats preserve timeline ordering by `created_at DESC`, then `id DESC`, and do not include AI-generated summaries yet. If `API_AUTH_ENABLED=true`, include `X-API-Key` as described in the API auth section.
+
 Update the timeline event:
 
 ```bash

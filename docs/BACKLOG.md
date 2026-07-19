@@ -107,7 +107,7 @@ These items track deterministic, non-AI incident report/export work for the v0.6
 - [done] Cover the no-events report case with empty `timeline_events` and count `0`.
 - [done] Verify existing auth and `X-Request-ID` behavior on report routes.
 - [done] Add deterministic Markdown export at `GET /api/v1/incidents/{incident_id}/report/markdown`.
-- [should-have] Add OpenAPI examples and docs for report/export responses.
+- [done] Add OpenAPI examples and docs for report/export responses.
 - [must-have] Complete report/export release review.
 - [must-have] Prepare v0.6.0 release.
 
