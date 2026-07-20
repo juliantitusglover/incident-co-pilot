@@ -70,6 +70,8 @@ docker compose down
 - [ ] Open http://localhost:8000/redoc.
 - [ ] Run the README curl examples for the incident and timeline event flow.
 - [ ] Confirm timeline event list pagination returns an envelope.
+- [ ] Confirm incident report JSON includes report fields and timeline ordering.
+- [ ] Confirm incident report Markdown returns `text/markdown` with report sections.
 - [ ] With default auth disabled, confirm liveness and incident list requests work without `X-API-Key`.
 - [ ] With auth enabled and a disposable test key, confirm health stays public and incident routes require `X-API-Key`.
 - [ ] Confirm request IDs are returned and caller-provided request IDs are echoed.
@@ -117,6 +119,19 @@ curl -i "http://localhost:8000/api/v1/incidents/$INCIDENT_ID/events?limit=1&offs
 ```
 
 Expected result: `200` with `items`, `limit`, `offset`, and `total`; `limit` is `1`, `offset` is `0`, and `total` is at least `2`.
+
+With default auth disabled, check incident report JSON and Markdown export:
+
+```bash
+curl http://localhost:8000/api/v1/incidents/$INCIDENT_ID/report
+curl -i http://localhost:8000/api/v1/incidents/$INCIDENT_ID/report/markdown
+```
+
+Expected JSON report result: `200` with `incident`, `timeline_events`, `timeline_order`, and `timeline_event_count`; `timeline_order` is `created_at_desc_id_desc`.
+
+Expected Markdown report result: `200`, `Content-Type` starts with `text/markdown`, and the body includes `# Incident Report:`, `## Incident`, `## Timeline`, `Timeline order: created_at_desc_id_desc`, and `Timeline event count:`.
+
+If `API_AUTH_ENABLED=true`, include `X-API-Key` on report/export requests as described in the auth smoke checks. Refresh ignored local `.env` files before Docker smoke tests if `docker compose config` renders stale local values.
 
 Start the auth-enabled app from the `backend/` directory:
 

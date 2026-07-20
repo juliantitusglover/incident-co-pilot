@@ -5,7 +5,8 @@
 - M11-PR2 structured JSON report endpoint is implemented.
 - M11-PR3 Markdown export endpoint is implemented.
 - M11-PR4 OpenAPI examples and README usage docs are implemented.
-- Report/export release review remains pending.
+- M11-PR5 report/export release review is complete.
+- The report/export contract has no known release blockers.
 - v0.6.0 prep remains pending.
 - Target release: v0.6.0.
 - v0.5.0 operational readiness is complete.
@@ -162,7 +163,7 @@ The endpoint lives under the existing incidents router. It inherits existing API
 - M11-PR2 - Structured incident report JSON endpoint. Implemented.
 - M11-PR3 - Markdown report export. Implemented.
 - M11-PR4 - OpenAPI examples and docs. Implemented.
-- M11-PR5 - Report/export release review.
+- M11-PR5 - Report/export release review. Complete.
 - M11-PR6 - Prepare v0.6.0 release.
 
 ## Current Test Coverage
@@ -179,3 +180,4 @@ The endpoint lives under the existing incidents router. It inherits existing API
 - JSON report OpenAPI metadata covers the response schema, `200` example, auth, and error responses.
 - Markdown export OpenAPI metadata covers `text/markdown`, a string schema, `200` example, auth, and error responses.
 - README usage docs cover JSON and Markdown report curl examples, ordering, counts, and non-AI/generated-summary boundaries.
+- Release review covered JSON report behavior, Markdown export behavior, OpenAPI examples, README docs, auth inheritance, request IDs, request-completion logging, missing-incident errors, and timeline ordering.
