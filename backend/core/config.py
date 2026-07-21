@@ -9,7 +9,7 @@ class Settings(BaseSettings, case_sensitive=True):
 
     API_TITLE: str = "Incident Co-Pilot API"
     API_DESCRIPTION: str = "Incident Co-Pilot is a lightweight incident timeline capture and summarisation tool."
-    API_VERSION: str = "0.5.0"
+    API_VERSION: str = "0.6.0"
     API_PREFIX: str = "/api/v1"
 
     API_AUTH_ENABLED: bool = False

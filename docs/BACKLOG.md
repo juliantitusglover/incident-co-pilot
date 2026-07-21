@@ -109,7 +109,7 @@ These items track deterministic, non-AI incident report/export work for the v0.6
 - [done] Add deterministic Markdown export at `GET /api/v1/incidents/{incident_id}/report/markdown`.
 - [done] Add OpenAPI examples and docs for report/export responses.
 - [done] Complete report/export release review.
-- [must-have] Prepare v0.6.0 release.
+- [done] Prepare v0.6.0 release.
 
 ## Split-Needed Items
 

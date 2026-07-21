@@ -4,7 +4,7 @@ This roadmap is directional. It is not a commitment or guarantee, and priorities
 
 ## Current Release Baseline
 
-The current self-hosted version includes core API usability improvements from v0.2.0, API access control from v0.3.0, client-readiness API polish from v0.4.0, and operational readiness diagnostics from v0.5.0.
+The current self-hosted version includes core API usability improvements from v0.2.0, API access control from v0.3.0, client-readiness API polish from v0.4.0, operational readiness diagnostics from v0.5.0, and prepared incident report/export work for v0.6.0.
 
 Current capabilities include:
 
@@ -70,13 +70,13 @@ Completed focus areas include:
 
 Request ID middleware, safe request logging, operations docs, and release-checklist diagnostics are in place for v0.5.0. AI features, third-party integrations, frontend work, users/RBAC/OAuth/JWT, cloud deployment work, metrics infrastructure, and distributed tracing services remain future-looking and outside M10.
 
-## Current Milestone: M11 - Incident Reports & Timeline Export
+## Prepared Milestone: v0.6.0 - Incident Reports & Timeline Export
 
-Target release: v0.6.0.
+Target release: v0.6.0. Release-prep tracked files are prepared; the release has not been tagged or published yet.
 
-M11 focuses on deterministic, non-AI incident reports and timeline export for existing incident data.
+M11 completes deterministic, non-AI incident reports and timeline export for existing incident data.
 
-Planned focus areas include:
+Prepared focus areas include:
 
 - Structured JSON report for `GET /api/v1/incidents/{incident_id}/report`.
 - Timeline export that preserves current event ordering: `created_at DESC, id DESC`.
