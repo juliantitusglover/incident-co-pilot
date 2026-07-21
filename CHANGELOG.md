@@ -10,18 +10,24 @@ The format is inspired by Keep a Changelog.
 
 ### Added
 
-- Added incident report/export strategy for the next deterministic reporting milestone.
-- Added a deterministic structured incident report JSON endpoint at `GET /api/v1/incidents/{incident_id}/report`.
-- Added a deterministic Markdown incident report export endpoint at `GET /api/v1/incidents/{incident_id}/report/markdown`.
-
 ### Changed
-
-- Documented incident report JSON and Markdown export endpoints with OpenAPI examples and README usage notes.
-- Added report/export release-review checklist coverage for JSON and Markdown report smoke tests.
 
 ### Fixed
 
 ### Security
+
+## 0.6.0 - 2026-07-21
+
+### Added
+
+- Added incident report/export strategy.
+- Added structured JSON report endpoint: `GET /api/v1/incidents/{incident_id}/report`.
+- Added deterministic Markdown export endpoint: `GET /api/v1/incidents/{incident_id}/report/markdown`.
+
+### Changed
+
+- Added OpenAPI examples and README usage docs for report/export.
+- Added release-checklist smoke coverage for JSON and Markdown reports.
 
 ## 0.5.0 - 2026-07-15
 

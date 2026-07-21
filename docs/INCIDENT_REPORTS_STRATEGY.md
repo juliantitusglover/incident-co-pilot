@@ -7,7 +7,7 @@
 - M11-PR4 OpenAPI examples and README usage docs are implemented.
 - M11-PR5 report/export release review is complete.
 - The report/export contract has no known release blockers.
-- v0.6.0 prep remains pending.
+- v0.6.0 tracked release-prep files are prepared; the release has not been tagged or published yet.
 - Target release: v0.6.0.
 - v0.5.0 operational readiness is complete.
 
@@ -164,7 +164,7 @@ The endpoint lives under the existing incidents router. It inherits existing API
 - M11-PR3 - Markdown report export. Implemented.
 - M11-PR4 - OpenAPI examples and docs. Implemented.
 - M11-PR5 - Report/export release review. Complete.
-- M11-PR6 - Prepare v0.6.0 release.
+- M11-PR6 - Prepare v0.6.0 release. Complete.
 
 ## Current Test Coverage
 

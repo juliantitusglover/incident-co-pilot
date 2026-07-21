@@ -13,8 +13,8 @@ Release automation may be added later.
 - [ ] Confirm `CHANGELOG.md` has an entry for the target version.
 
 ```bash
-TARGET_VERSION=0.5.0
-TARGET_TAG=v0.5.0
+TARGET_VERSION=0.6.0
+TARGET_TAG=v0.6.0
 git status --short
 ```
 
@@ -22,6 +22,8 @@ git status --short
 
 - [ ] Check `backend/pyproject.toml`.
 - [ ] Check `backend/core/config.py`.
+- [ ] Check `backend/schemas/health.py`.
+- [ ] Check `backend/uv.lock`.
 - [ ] Check root `.env.example`.
 - [ ] Check `backend/.env.example`.
 
