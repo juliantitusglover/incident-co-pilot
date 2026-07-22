@@ -4,7 +4,7 @@ This roadmap is directional. It is not a commitment or guarantee, and priorities
 
 ## Current Release Baseline
 
-The current self-hosted version includes core API usability improvements from v0.2.0, API access control from v0.3.0, client-readiness API polish from v0.4.0, operational readiness diagnostics from v0.5.0, and prepared incident report/export work for v0.6.0.
+The current self-hosted version includes core API usability improvements from v0.2.0, API access control from v0.3.0, client-readiness API polish from v0.4.0, operational readiness diagnostics from v0.5.0, and incident report/export work from v0.6.0.
 
 Current capabilities include:
 
@@ -19,6 +19,7 @@ Current capabilities include:
 - Health endpoints for liveness and readiness.
 - Docker Compose local runtime.
 - Optional shared API key authentication for incident and timeline event routes.
+- Deterministic incident report JSON and Markdown export endpoints.
 - README setup and API examples.
 - Security, privacy, contributing, changelog, and release checklist docs.
 - OpenAPI metadata improvements.
@@ -70,13 +71,13 @@ Completed focus areas include:
 
 Request ID middleware, safe request logging, operations docs, and release-checklist diagnostics are in place for v0.5.0. AI features, third-party integrations, frontend work, users/RBAC/OAuth/JWT, cloud deployment work, metrics infrastructure, and distributed tracing services remain future-looking and outside M10.
 
-## Prepared Milestone: v0.6.0 - Incident Reports & Timeline Export
+## Recent Milestone: v0.6.0 - Incident Reports & Timeline Export
 
-Target release: v0.6.0. Release-prep tracked files are prepared; the release has not been tagged or published yet.
+v0.6.0 completed M11 incident report/export work.
 
-M11 completes deterministic, non-AI incident reports and timeline export for existing incident data.
+M11 added deterministic, non-AI incident reports and timeline export for existing incident data.
 
-Prepared focus areas include:
+Completed focus areas include:
 
 - Structured JSON report for `GET /api/v1/incidents/{incident_id}/report`.
 - Timeline export that preserves current event ordering: `created_at DESC, id DESC`.
@@ -84,6 +85,23 @@ Prepared focus areas include:
 - OpenAPI examples and docs for the new report/export contract.
 
 M11 is explicitly non-AI. It does not include generated summaries, LLM calls, Slack/Jira/Zendesk integrations, frontend work, users/RBAC/OAuth/JWT, PDF export, background jobs, metrics/tracing, new database tables, or broad refactors.
+
+## Current Milestone: M12 - Minimal Web UI
+
+Target release: v0.7.0.
+
+M12 focuses on a small browser UI over existing API contracts so Incident Co-Pilot can be used without curl/OpenAPI.
+
+Planned focus areas include:
+
+- Vite React TypeScript frontend scaffold.
+- Local API base URL and optional API key configuration.
+- Incident list and create incident workflows.
+- Incident detail and timeline event list/create workflows.
+- JSON and Markdown report panel for existing report/export endpoints.
+- Basic loading, empty, error, and `401` states.
+
+M12 does not include AI summaries, auth model changes, users/RBAC/OAuth/JWT, Slack/Jira/Zendesk integrations, realtime/WebSockets, deployment platform work, Kubernetes/cloud hosting, backend schema changes, generated API clients, or broad repo restructuring.
 
 ## M9 Completed Focus Areas
 

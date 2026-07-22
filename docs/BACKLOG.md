@@ -111,6 +111,28 @@ These items track deterministic, non-AI incident report/export work for the v0.6
 - [done] Complete report/export release review.
 - [done] Prepare v0.6.0 release.
 
+## M12 Minimal Web UI
+
+These items track a small local/self-hosted browser UI for existing backend capabilities. See [Minimal web UI strategy](WEB_UI_STRATEGY.md).
+
+### Web UI Planning
+
+- [done] Add minimal web UI strategy documentation.
+- [must-have] Add Vite React TypeScript frontend scaffold.
+- [must-have] Add small hand-written API client and frontend configuration.
+- [must-have] Add incident list.
+- [must-have] Add create incident form.
+- [must-have] Add incident detail view.
+- [must-have] Add timeline event list.
+- [must-have] Add timeline event form.
+- [must-have] Add JSON report panel.
+- [must-have] Add Markdown report panel.
+- [must-have] Add copy Markdown support.
+- [should-have] Add download Markdown support if simple.
+- [must-have] Add loading, empty, error, and `401` states.
+- [must-have] Add frontend docs, release checklist, and manual browser smoke review.
+- [must-have] Prepare v0.7.0 release.
+
 ## Split-Needed Items
 
 These items are intentionally too large and should be split before implementation.
