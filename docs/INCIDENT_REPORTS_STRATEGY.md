@@ -7,8 +7,7 @@
 - M11-PR4 OpenAPI examples and README usage docs are implemented.
 - M11-PR5 report/export release review is complete.
 - The report/export contract has no known release blockers.
-- v0.6.0 tracked release-prep files are prepared; the release has not been tagged or published yet.
-- Target release: v0.6.0.
+- M11 was released in v0.6.0.
 - v0.5.0 operational readiness is complete.
 
 ## Goal

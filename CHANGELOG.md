@@ -10,6 +10,8 @@ The format is inspired by Keep a Changelog.
 
 ### Added
 
+- Added minimal web UI strategy for the next frontend milestone.
+
 ### Changed
 
 ### Fixed
