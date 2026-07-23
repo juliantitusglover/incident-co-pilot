@@ -2,9 +2,14 @@
 
 ## Status
 
-- Planning for M12.
+- M12-PR2 scaffold is implemented.
 - Target release: v0.7.0.
 - v0.6.0 Incident Reports & Timeline Export is complete.
+- `frontend/` now contains a minimal Vite React TypeScript scaffold.
+- The scaffold has `dev`, `typecheck`, `build`, and `preview` scripts.
+- No product screens or API calls exist yet.
+- Docker Compose frontend integration and frontend CI remain deferred.
+- M12-PR3 incident list/create remains next.
 
 ## Goal
 
@@ -94,7 +99,7 @@ When API authentication is enabled, protected API calls use the `X-API-Key` head
 ## M12 PR Sequence
 
 - M12-PR1 - Minimal Web UI strategy.
-- M12-PR2 - Vite React TypeScript scaffold.
+- M12-PR2 - Vite React TypeScript scaffold. Complete.
 - M12-PR3 - Incident list and create incident.
 - M12-PR4 - Incident detail and timeline event list/create.
 - M12-PR5 - Report JSON/Markdown panel.

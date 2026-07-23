@@ -11,6 +11,7 @@ The format is inspired by Keep a Changelog.
 ### Added
 
 - Added minimal web UI strategy for the next frontend milestone.
+- Added a minimal Vite React TypeScript frontend scaffold.
 
 ### Changed
 

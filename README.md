@@ -4,6 +4,7 @@ Incident Co-Pilot is a lightweight API for capturing incidents, tracking timelin
 
 ## Tech stack
 - Backend: FastAPI (Python)
+- Frontend: Vite, React, TypeScript
 - DB: Postgres
 - Tests: pytest via uv
 
@@ -15,6 +16,7 @@ Incident Co-Pilot is a lightweight API for capturing incidents, tracking timelin
 
 ## Repo structure
 - `backend/` — FastAPI API service
+- `frontend/` — Vite React TypeScript web UI scaffold
 - `docs/` — release and project documentation
 
 ## Docker quickstart
@@ -225,6 +227,20 @@ uv run alembic upgrade head
 ```bash
 PYTHONPATH=.. uv run fastapi dev main.py
 ```
+
+## Frontend: run locally
+
+The minimal web UI scaffold lives in `frontend/`. Local frontend development uses http://localhost:5173 and expects the backend API at http://localhost:8000.
+
+The frontend requires Node.js 20.19 or newer. See `frontend/README.md`.
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+API calls and product screens will be added in later M12 PRs.
 
 ## Environment variables
 
@@ -483,6 +499,7 @@ The API uses standard FastAPI/OpenAPI error shapes:
 - [Operations readiness strategy](docs/OPERATIONS_READINESS_STRATEGY.md)
 - [Pagination strategy](docs/PAGINATION_STRATEGY.md)
 - [Timeline event read strategy](docs/TIMELINE_EVENT_READ_STRATEGY.md)
+- [Minimal web UI strategy](docs/WEB_UI_STRATEGY.md)
 - [Changelog](CHANGELOG.md)
 - [Release checklist](docs/RELEASE_CHECKLIST.md)
 - [License](LICENSE)
