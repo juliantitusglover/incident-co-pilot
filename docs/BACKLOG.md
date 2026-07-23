@@ -118,7 +118,7 @@ These items track a small local/self-hosted browser UI for existing backend capa
 ### Web UI Planning
 
 - [done] Add minimal web UI strategy documentation.
-- [must-have] Add Vite React TypeScript frontend scaffold.
+- [done] Add Vite React TypeScript frontend scaffold.
 - [must-have] Add small hand-written API client and frontend configuration.
 - [must-have] Add incident list.
 - [must-have] Add create incident form.
